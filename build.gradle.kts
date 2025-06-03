@@ -112,7 +112,7 @@ tasks.register<Copy>("buildAndCollect") {
 
 publishMods {
     fun versionList(prop: String) = findProperty(prop)?.toString()
-        ?.split(',')
+        ?.split("\\s+".toRegex())
         ?.map { it.trim() }
         ?: emptyList()
     val versions = versionList("mod.mc_targets")
