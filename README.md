@@ -2,9 +2,9 @@
 
 A Minecraft mod that prevents Zombies from picking up any item you choose!
 
-This mod is aimed at server admins who have to deal with Zombies picking up stuff like
-eggs and rotten flesh, causing them to not despawn. Add the items to the list through commands
-or the config file to prevent Zombies from picking up those items.
+Since 1.17.1 there's a check in the game to prevent zombies from gathering glow ink sacs. 
+Zombies Can't Gather changes that line to check against a list of items, loaded from the config. 
+This results in Zombies not being able to pick up those items, which prevents them from becoming persistent.
 
 > By default, the mod only prevents Zombies from gathering `minecraft:glow_ink_sac`, just like vanilla Minecraft.
 
