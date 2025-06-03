@@ -41,7 +41,7 @@ jobs:
         run: ./gradlew chiseledBuild
 
       - name: publish
-        if: ${{ runner.os == 'Linux' && matrix.java == '21' }}
+        if: ${{ runner.os == 'Linux' && matrix.java == '21' }} # Only publish from latest java on one OS
         run: ./gradlew chiseledPublishMods
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
