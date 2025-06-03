@@ -20,6 +20,7 @@ val mod = ModData()
 val deps = ModDependencies()
 val mcVersion = stonecutter.current.version
 val mcDep = property("mod.mc_dep").toString()
+val fabricKey = if (stonecutter.eval(mcVersion, ">=1.19.3")) "fabric-api" else "fabric"
 
 version = "${mod.version}+$mcVersion"
 group = mod.group
@@ -92,12 +93,14 @@ tasks.processResources {
     inputs.property("name", mod.name)
     inputs.property("version", mod.version)
     inputs.property("mcdep", mcDep)
+    inputs.property("fabrickey", fabricKey)
 
     val map = mapOf(
         "id" to mod.id,
         "name" to mod.name,
         "version" to mod.version,
-        "mcdep" to mcDep
+        "mcdep" to mcDep,
+        "fabrickey" to fabricKey,
     )
 
     filesMatching("fabric.mod.json") { expand(map) }

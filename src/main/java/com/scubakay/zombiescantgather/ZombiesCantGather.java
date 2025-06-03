@@ -13,7 +13,7 @@ import java.nio.file.Path;
 public class ZombiesCantGather implements ModInitializer {
     public static final String MOD_ID = "zombiescantgather";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    public static final String VERSION = /*$ mod_version*/ "0.1.0";
+    public static final String VERSION = /*$ mod_version*/ "0.1.1";
 
     public static ModConfig modConfig;
 
