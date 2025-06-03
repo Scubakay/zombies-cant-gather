@@ -2,7 +2,7 @@ plugins {
     `maven-publish`
     id("fabric-loom")
     //id("dev.kikugie.j52j")
-    //id("me.modmuss50.mod-publish-plugin")
+    id("me.modmuss50.mod-publish-plugin")
 }
 
 class ModData {
@@ -110,7 +110,6 @@ tasks.register<Copy>("buildAndCollect") {
     dependsOn("build")
 }
 
-/*
 publishMods {
     file = tasks.remapJar.get().archiveFile
     additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
@@ -132,17 +131,16 @@ publishMods {
         }
     }
 
-    curseforge {
-        projectId = property("publish.curseforge").toString()
-        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
-        minecraftVersions.add(mcVersion)
-        requires {
-            slug = "fabric-api"
-        }
-    }
+//    curseforge {
+//        projectId = property("publish.curseforge").toString()
+//        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+//        minecraftVersions.add(mcVersion)
+//        requires {
+//            slug = "fabric-api"
+//        }
+//    }
 }
-*/
-/*
+
 publishing {
     repositories {
         maven("...") {
@@ -164,4 +162,3 @@ publishing {
         }
     }
 }
-*/

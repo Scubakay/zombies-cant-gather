@@ -6,8 +6,9 @@
 name: build
 on:
   push:
-    branches: [master]
-  pull_request:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - '*.*.*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   build:
@@ -33,6 +34,8 @@ jobs:
         run: chmod +x ./gradlew
       - name: build
         run: ./gradlew chiseledBuild
+      - name: build
+        run: ./gradlew chiseledPublishMods
       - name: capture build artifacts
         if: ${{ runner.os == 'Linux' && matrix.java == '21' }} # Only upload artifacts built from latest java on one OS
         uses: actions/upload-artifact@v4
