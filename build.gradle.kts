@@ -111,6 +111,12 @@ tasks.register<Copy>("buildAndCollect") {
 }
 
 publishMods {
+    fun versionList(prop: String) = findProperty(prop)?.toString()
+        ?.split(',')
+        ?.map { it.trim() }
+        ?: emptyList()
+    val versions = versionList("mod.mc_targets")
+
     file = tasks.remapJar.get().archiveFile
     additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
     displayName = "${mod.name} ${mod.version} for $mcVersion"
@@ -126,7 +132,7 @@ publishMods {
     modrinth {
         projectId = property("publish.modrinth").toString()
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
-        minecraftVersions.add(mcVersion)
+        minecraftVersions.addAll(versions)
         requires {
             slug = "fabric-api"
         }
