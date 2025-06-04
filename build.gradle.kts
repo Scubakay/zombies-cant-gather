@@ -26,6 +26,11 @@ version = "${mod.version}+$mcVersion"
 group = mod.group
 base { archivesName.set(mod.id) }
 
+stonecutter {
+    replacement(eval(current.version, ">=1.19.3"), "net.minecraft.util.registry.Registry", "net.minecraft.registry.Registries")
+    replacement(eval(current.version, ">=1.20"), "sendFeedback(Text", "sendFeedback(() -> Text", identifier = "sendFeedbackFix")
+}
+
 loom {
     serverOnlyMinecraftJar()
 

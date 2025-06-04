@@ -1,3 +1,4 @@
+//~ sendFeedbackFix
 package com.scubakay.zombiescantgather.command;
 
 import com.mojang.brigadier.CommandDispatcher;
@@ -10,12 +11,6 @@ import net.minecraft.command.argument.ItemStackArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
-
-//? if >= 1.19.3 {
-import net.minecraft.registry.Registries;
-//?} else {
-/*import net.minecraft.util.registry.Registry;
-*///?}
 
 public class ZombiesCantGatherCommand {
     private static final String MOD_NAME = "§a[Zombies Can't Gather] §7";
@@ -46,10 +41,10 @@ public class ZombiesCantGatherCommand {
         String item = getIdentifierFromItemStackArgument(itemStackArgument);
         try {
             ZombiesCantGather.modConfig.addItem(item);
-            context.getSource().sendFeedback(/*? >=1.20 {*/() -> /*?}*/Text.literal(MOD_NAME + "Added §f" + item), false);
+            context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "Added §f" + item), false);
             return 1;
         } catch (IllegalArgumentException ex) {
-            context.getSource().sendFeedback(/*? >=1.20 {*/() -> /*?}*/Text.literal(MOD_NAME + "§f" + item + "§7 has already been added"), false);
+            context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "§f" + item + "§7 has already been added"), false);
             return 0;
         }
     }
@@ -58,23 +53,22 @@ public class ZombiesCantGatherCommand {
         String item = getIdentifierFromItemStackArgument(itemStackArgument);
         try {
             ZombiesCantGather.modConfig.removeItem(item);
-            context.getSource().sendFeedback(/*? >=1.20 {*/() -> /*?}*/Text.literal(MOD_NAME + "Removed §f" + item), false);
+            context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "Removed §f" + item), false);
             return 1;
         } catch (IllegalArgumentException ex) {
-            context.getSource().sendFeedback(/*? >=1.20 {*/() -> /*?}*/Text.literal(MOD_NAME + "§f" + item + "§7 was not found"), false);
+            context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "§f" + item + "§7 was not found"), false);
             return 0;
         }
     }
 
     private static int list(CommandContext<ServerCommandSource> context) {
         StringList items = ZombiesCantGather.modConfig.zombiesCantGather.get();
-        context.getSource().sendFeedback(/*? >=1.20 {*/() -> /*?}*/Text.literal(MOD_NAME + "Zombies can't pick up these items:"), false);
-        items.forEach((item) -> context.getSource().sendFeedback(/*? >=1.20 {*/() -> /*?}*/Text.literal("§f" + item), false));
+        context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "Zombies can't pick up these items:"), false);
+        items.forEach((item) -> context.getSource().sendFeedback(() -> Text.literal("§f" + item), false));
         return 1;
     }
 
     private static String getIdentifierFromItemStackArgument(ItemStackArgument itemStackArgument) {
-        return /*? >= 1.19.3 {*/Registries/*} else {*//*Registry*//*?}*/
-                .ITEM.getId(itemStackArgument.getItem()).toString();
+        return net.minecraft.registry.Registries.ITEM.getId(itemStackArgument.getItem()).toString();
     }
 }

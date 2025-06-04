@@ -9,12 +9,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-//? if >= 1.19.3 {
-import net.minecraft.registry.Registries;
-//?} else {
-/*import net.minecraft.util.registry.Registry;
- *///?}
-
 @Mixin(ZombieEntity.class)
 public class ZombieEntityMixin {
     @Redirect(
@@ -25,8 +19,7 @@ public class ZombieEntityMixin {
         )
     )
     private boolean zombiesCantGather$redirectIsOf(ItemStack stack, Item item) {
-        Identifier id = /*? >= 1.19.3 {*/Registries/*} else {*//*Registry*//*?}*/
-                .ITEM.getId(stack.getItem());
+        Identifier id = net.minecraft.registry.Registries.ITEM.getId(stack.getItem());
         return ZombiesCantGather.modConfig.zombiesCantGather.get().contains(id.toString());
     }
 }
