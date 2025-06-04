@@ -20,10 +20,16 @@ val mod = ModData()
 val deps = ModDependencies()
 val mcVersion = stonecutter.current.version
 val mcDep = property("mod.mc_dep").toString()
+val fabricKey = if (stonecutter.eval(mcVersion, ">=1.19.3")) "fabric-api" else "fabric"
 
 version = "${mod.version}+$mcVersion"
 group = mod.group
 base { archivesName.set(mod.id) }
+
+stonecutter {
+    replacement(eval(current.version, ">=1.19.3"), "net.minecraft.util.registry.Registry", "net.minecraft.registry.Registries")
+    replacement(eval(current.version, ">=1.20"), "sendFeedback(Text", "sendFeedback(() -> Text", identifier = "sendFeedbackFix")
+}
 
 loom {
     serverOnlyMinecraftJar()
@@ -82,7 +88,7 @@ loom {
 
 java {
     withSourcesJar()
-    val java = if (stonecutter.eval(mcVersion, ">=1.20.6")) JavaVersion.VERSION_21 else JavaVersion.VERSION_17
+    val java = if (stonecutter.eval(mcVersion, ">=1.20.5")) JavaVersion.VERSION_21 else JavaVersion.VERSION_17
     targetCompatibility = java
     sourceCompatibility = java
 }
@@ -92,12 +98,14 @@ tasks.processResources {
     inputs.property("name", mod.name)
     inputs.property("version", mod.version)
     inputs.property("mcdep", mcDep)
+    inputs.property("fabrickey", fabricKey)
 
     val map = mapOf(
         "id" to mod.id,
         "name" to mod.name,
         "version" to mod.version,
-        "mcdep" to mcDep
+        "mcdep" to mcDep,
+        "fabrickey" to fabricKey,
     )
 
     filesMatching("fabric.mod.json") { expand(map) }

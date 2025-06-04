@@ -1,3 +1,4 @@
+//~ sendFeedbackFix
 package com.scubakay.zombiescantgather.command;
 
 import com.mojang.brigadier.CommandDispatcher;
@@ -7,7 +8,6 @@ import de.maxhenkel.configbuilder.custom.StringList;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.ItemStackArgument;
 import net.minecraft.command.argument.ItemStackArgumentType;
-import net.minecraft.registry.Registries;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -64,13 +64,11 @@ public class ZombiesCantGatherCommand {
     private static int list(CommandContext<ServerCommandSource> context) {
         StringList items = ZombiesCantGather.modConfig.zombiesCantGather.get();
         context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "Zombies can't pick up these items:"), false);
-        items.forEach((item) -> {
-            context.getSource().sendFeedback(() -> Text.literal("§f" + item), false);
-        });
+        items.forEach((item) -> context.getSource().sendFeedback(() -> Text.literal("§f" + item), false));
         return 1;
     }
 
     private static String getIdentifierFromItemStackArgument(ItemStackArgument itemStackArgument) {
-        return Registries.ITEM.getId(itemStackArgument.getItem()).toString();
+        return net.minecraft.registry.Registries.ITEM.getId(itemStackArgument.getItem()).toString();
     }
 }
