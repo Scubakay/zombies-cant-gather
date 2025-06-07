@@ -12,12 +12,12 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
-public class ZombiesCantGatherCommand {
+public class PiglinsCantGatherCommand {
     private static final String MOD_NAME = "§a[Zombies Can't Gather] §7";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredCommandRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
         dispatcher.register(CommandManager
-                .literal("zombiescantgather")
+                .literal("piglinscantgather")
                 .requires(source -> source.hasPermissionLevel(4)) // Must be OP to execute
                 .then(CommandManager
                         .literal("add")
@@ -33,14 +33,14 @@ public class ZombiesCantGatherCommand {
                         ))
                 .then(CommandManager
                         .literal("list")
-                        .executes(ZombiesCantGatherCommand::list)
+                        .executes(PiglinsCantGatherCommand::list)
                 ));
     }
 
     public static int add(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
         String item = getIdentifierFromItemStackArgument(itemStackArgument);
         try {
-            ZombiesCantGather.modConfig.addZombieItem(item);
+            ZombiesCantGather.modConfig.addPiglinItem(item);
             context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "Added §f" + item), false);
             return 1;
         } catch (IllegalArgumentException ex) {
@@ -52,7 +52,7 @@ public class ZombiesCantGatherCommand {
     public static int remove(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
         String item = getIdentifierFromItemStackArgument(itemStackArgument);
         try {
-            ZombiesCantGather.modConfig.removeZombieItem(item);
+            ZombiesCantGather.modConfig.removePiglinItem(item);
             context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "Removed §f" + item), false);
             return 1;
         } catch (IllegalArgumentException ex) {
@@ -62,8 +62,8 @@ public class ZombiesCantGatherCommand {
     }
 
     private static int list(CommandContext<ServerCommandSource> context) {
-        StringList items = ZombiesCantGather.modConfig.zombiesCantGather.get();
-        context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "Zombies can't pick up these items:"), false);
+        StringList items = ZombiesCantGather.modConfig.piglinsCantGather.get();
+        context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "Piglins can't pick up these items:"), false);
         items.forEach((item) -> {
             context.getSource().sendFeedback(() -> Text.literal("§f" + item), false);
         });
