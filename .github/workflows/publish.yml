@@ -18,7 +18,7 @@ jobs:
         # Use these Java versions
         java: [21]
         # and run on both Linux and Windows
-        os: [ubuntu-22.04, windows-2022]
+        os: [ubuntu-22.04]
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout repository
@@ -38,16 +38,14 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: build
-        run: ./gradlew chiseledBuild
+        run: ./gradlew build
 
       - name: publish
-        if: ${{ runner.os == 'Linux' && matrix.java == '21' }} # Only publish from latest java on one OS
-        run: ./gradlew chiseledPublishMods
+        run: ./gradlew publishMods
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
 
       - name: capture build artifacts
-        if: ${{ runner.os == 'Linux' && matrix.java == '21' }} # Only upload artifacts built from latest java on one OS
         uses: actions/upload-artifact@v4
         with:
           name: Artifacts
