@@ -1,5 +1,6 @@
 package com.scubakay.zombiescantgather;
 
+import com.scubakay.zombiescantgather.command.PiglinsCantGatherCommand;
 import com.scubakay.zombiescantgather.command.ZombiesCantGatherCommand;
 import com.scubakay.zombiescantgather.command.ZombiesCantGatherPermissionsManager;
 import com.scubakay.zombiescantgather.config.ModConfig;
