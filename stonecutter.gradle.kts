@@ -6,28 +6,6 @@ plugins {
 }
 stonecutter active "1.21.2" /* [SC] DO NOT EDIT */
 
-// Builds every version into `build/libs/{mod.version}/`
-stonecutter registerChiseled tasks.register("chiseledBuild", stonecutter.chiseled) {
-    group = "project"
-    ofTask("buildAndCollect")
-}
-
-// Publishes every version
-stonecutter registerChiseled tasks.register("chiseledPublishMods", stonecutter.chiseled) {
-    group = "project"
-    ofTask("publishMods")
-}
-
-stonecutter parameters {
-    /*
-    See src/main/java/com/example/TemplateMod.java
-    and https://stonecutter.kikugie.dev/
-    */
-    // Swaps replace the scope with a predefined value
-    swap("mod_version", "\"${property("mod.version")}\";")
-    // Constants add variables available in conditions
-    const("release", property("mod.id") != "template")
-    // Dependencies add targets to check versions against
-    // Using `node.property()` in this block gets the versioned property
-    dependency("fapi", node!!.project.property("deps.fabric_api").toString())
+stonecutter.tasks {
+    order(named("publishMods"))
 }
