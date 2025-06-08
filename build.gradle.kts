@@ -83,6 +83,19 @@ loom {
     }
 }
 
+fabricApi {
+    @Suppress("UnstableApiUsage") // Shut up
+    configureTests {
+        createSourceSet = true
+        modId = "test-${mod.name}"
+        eula = true
+    }
+}
+
+sourceSets.named("gametest") {
+    resources.srcDir("src/gametest/resources")
+}
+
 java {
     withSourcesJar()
     val java = if (stonecutter.eval(mcVersion, ">=1.20.6")) JavaVersion.VERSION_21 else JavaVersion.VERSION_17
