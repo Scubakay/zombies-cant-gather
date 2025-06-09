@@ -1,1 +1,4 @@
-- First Alpha version!
+- Now supports setting permissions for each command:
+  - "zombiescantgather.add"
+  - "zombiescantgather.remove"
+  - "zombiescantgather.list"
