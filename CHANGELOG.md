@@ -1,4 +1,12 @@
 - Now supports setting permissions for each command:
-  - "zombiescantgather.add"
-  - "zombiescantgather.remove"
-  - "zombiescantgather.list"
+  - `zombiescantgather.add`
+  - `zombiescantgather.remove`
+  - `zombiescantgather.list`
+- Now supports piglins! Use the new commands to edit the list:
+  - `/zombiescantgather piglin add <item>`
+  - `/zombiescantgather piglin remove <item>`
+  - `/zombiescantgather piglin list`
+- Zombie list commands have been moved:
+  - `/zombiescantgather zombie add <item>`
+  - `/zombiescantgather zombie remove <item>`
+  - `/zombiescantgather zombie list`
