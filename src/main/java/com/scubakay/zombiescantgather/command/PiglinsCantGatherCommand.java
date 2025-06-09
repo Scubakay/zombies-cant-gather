@@ -1,76 +1,49 @@
 package com.scubakay.zombiescantgather.command;
 
-import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
-import com.scubakay.zombiescantgather.ZombiesCantGather;
+import com.scubakay.zombiescantgather.util.CommandUtil;
+import de.maxhenkel.admiral.annotations.Command;
+import de.maxhenkel.admiral.annotations.Name;
+import de.maxhenkel.admiral.annotations.RequiresPermission;
 import de.maxhenkel.configbuilder.custom.StringList;
-import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.ItemStackArgument;
-import net.minecraft.command.argument.ItemStackArgumentType;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
 
+import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
+import static com.scubakay.zombiescantgather.command.ZombiesCantGatherPermissionsManager.*;
+import static com.scubakay.zombiescantgather.util.CommandUtil.FANCY_MOD_NAME;
+
+@Command({"zombiescantgather", "piglin"})
 public class PiglinsCantGatherCommand {
-    private static final String MOD_NAME = "§a[Zombies Can't Gather] §7";
-
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredCommandRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
-        dispatcher.register(CommandManager
-                .literal("piglinscantgather")
-                .requires(source -> source.hasPermissionLevel(4)) // Must be OP to execute
-                .then(CommandManager
-                        .literal("add")
-                        .then(CommandManager
-                                .argument("item", ItemStackArgumentType.itemStack(ignoredCommandRegistryAccess))
-                                .executes(ctx -> add(ctx, ItemStackArgumentType.getItemStackArgument(ctx, "item")))
-                        ))
-                .then(CommandManager
-                        .literal("remove")
-                        .then(CommandManager
-                                .argument("item", ItemStackArgumentType.itemStack(ignoredCommandRegistryAccess))
-                                .executes(ctx -> remove(ctx, ItemStackArgumentType.getItemStackArgument(ctx, "item")))
-                        ))
-                .then(CommandManager
-                        .literal("list")
-                        .executes(PiglinsCantGatherCommand::list)
-                ));
-    }
-
-    public static int add(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
-        String item = getIdentifierFromItemStackArgument(itemStackArgument);
+    @Command("add")
+    @RequiresPermission(ADD_PERMISSION)
+    public void add(CommandContext<ServerCommandSource> context, @Name("item") ItemStackArgument itemStackArgument) {
+        String item = CommandUtil.getIdentifierFromItemStackArgument(itemStackArgument);
         try {
-            ZombiesCantGather.modConfig.addPiglinItem(item);
-            context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "Added §f" + item), false);
-            return 1;
+            MOD_CONFIG.addPiglinItem(item);
+            CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can't gather §f" + item);
         } catch (IllegalArgumentException ex) {
-            context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "§f" + item + "§7 has already been added"), false);
-            return 0;
+            CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins already can't gather §f" + item);
         }
     }
 
-    public static int remove(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
-        String item = getIdentifierFromItemStackArgument(itemStackArgument);
+    @Command("remove")
+    @RequiresPermission(REMOVE_PERMISSION)
+    public void list(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
+        String item = CommandUtil.getIdentifierFromItemStackArgument(itemStackArgument);
         try {
-            ZombiesCantGather.modConfig.removePiglinItem(item);
-            context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "Removed §f" + item), false);
-            return 1;
+            MOD_CONFIG.removePiglinItem(item);
+            CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can gather §f" + item + "§7 again");
         } catch (IllegalArgumentException ex) {
-            context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "§f" + item + "§7 was not found"), false);
-            return 0;
+            CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can already gather §f" + item);
         }
     }
 
-    private static int list(CommandContext<ServerCommandSource> context) {
-        StringList items = ZombiesCantGather.modConfig.piglinsCantGather.get();
-        context.getSource().sendFeedback(() -> Text.literal(MOD_NAME + "Piglins can't pick up these items:"), false);
-        items.forEach((item) -> {
-            context.getSource().sendFeedback(() -> Text.literal("§f" + item), false);
-        });
-        return 1;
-    }
-
-    private static String getIdentifierFromItemStackArgument(ItemStackArgument itemStackArgument) {
-        return Registries.ITEM.getId(itemStackArgument.getItem()).toString();
+    @Command("list")
+    @RequiresPermission(LIST_PERMISSION)
+    public void list(CommandContext<ServerCommandSource> context) {
+        StringList piglinItems = MOD_CONFIG.piglinsCantGather.get();
+        CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can't pick up these items:");
+        piglinItems.forEach((item) -> CommandUtil.reply(context, "§f" + item));
     }
 }

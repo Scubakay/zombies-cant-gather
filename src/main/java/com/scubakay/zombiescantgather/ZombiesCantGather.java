@@ -33,7 +33,8 @@ public class ZombiesCantGather implements ModInitializer {
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> MinecraftAdmiral.builder(dispatcher, registryAccess)
                 .addCommandClasses(
-                        ZombiesCantGatherCommand.class
+                        ZombiesCantGatherCommand.class,
+                        PiglinsCantGatherCommand.class
                 )
                 .setPermissionManager(PERMISSIONS_MANAGER)
                 .build());
