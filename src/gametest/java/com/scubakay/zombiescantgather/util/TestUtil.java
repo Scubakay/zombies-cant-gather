@@ -3,6 +3,7 @@ package com.scubakay.zombiescantgather.util;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.item.Item;
@@ -13,6 +14,7 @@ import net.minecraft.util.math.Box;
 
 import java.util.List;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class TestUtil {
     /**
      * Spawn a Zombie and an item on the same block and expect the zombie to pick up the item.
@@ -25,13 +27,14 @@ public class TestUtil {
         MobEntity mob = context.spawnMob(entity, mobPos);
         mob.setCanPickUpLoot(true);
 
-        context.spawnItem(item, mobPos);
+        ItemEntity itemEntity = context.spawnItem(item, mobPos);
 
         context.waitAndRun(20, () -> {
             context.dontExpectItemAt(item, mobPos, 1);
             context.expectEntityHoldingItem(mobPos, entity, item);
         });
-        context.complete();
+        context.killEntity(mob);
+        context.killEntity(itemEntity);
     }
 
     /**
@@ -45,13 +48,14 @@ public class TestUtil {
         MobEntity mob = context.spawnMob(entity, mobPos);
         mob.setCanPickUpLoot(true);
 
-        context.spawnItem(item, mobPos);
+        ItemEntity itemEntity = context.spawnItem(item, mobPos);
 
         context.waitAndRun(20, () -> {
             context.expectItemAt(item, mobPos, 1);
             dontExpectEntityHoldingItem(context, mobPos, entity, item);
         });
-        context.complete();
+        context.killEntity(mob);
+        context.killEntity(itemEntity);
     }
 
     /**

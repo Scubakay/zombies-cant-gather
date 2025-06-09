@@ -18,7 +18,7 @@ public class PiglinsCantGatherCommand {
     @Command("add")
     @RequiresPermission(ADD_PERMISSION)
     public void add(CommandContext<ServerCommandSource> context, @Name("item") ItemStackArgument itemStackArgument) {
-        String item = CommandUtil.getIdentifierFromItemStackArgument(itemStackArgument);
+        String item = itemStackArgument.getItem().toString();
         try {
             MOD_CONFIG.addPiglinItem(item);
             CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can't gather §f" + item);
@@ -30,7 +30,7 @@ public class PiglinsCantGatherCommand {
     @Command("remove")
     @RequiresPermission(REMOVE_PERMISSION)
     public void list(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
-        String item = CommandUtil.getIdentifierFromItemStackArgument(itemStackArgument);
+        String item = itemStackArgument.getItem().toString();
         try {
             MOD_CONFIG.removePiglinItem(item);
             CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can gather §f" + item + "§7 again");

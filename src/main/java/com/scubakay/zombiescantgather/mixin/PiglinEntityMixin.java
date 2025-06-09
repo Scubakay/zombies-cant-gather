@@ -16,8 +16,7 @@ import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 public class PiglinEntityMixin {
     @Inject(method = "canGather", at = @At("HEAD"), cancellable = true)
     private static void injectPiglinsCantGather(PiglinEntity piglin, ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
-        Identifier id = Registries.ITEM.getId(stack.getItem());
-        if (MOD_CONFIG.zombiesCantGather.get().contains(id.toString())) {
+        if (MOD_CONFIG.zombiesCantGather.get().contains(stack.toString())) {
             cir.setReturnValue(false);
         }
     }

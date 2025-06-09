@@ -1,7 +1,5 @@
 package com.scubakay.zombiescantgather.config;
 
-import com.scubakay.zombiescantgather.util.MinecraftUtil;
-import com.scubakay.zombiescantgather.util.SystemUtil;
 import de.maxhenkel.configbuilder.ConfigBuilder;
 import de.maxhenkel.configbuilder.custom.StringList;
 import de.maxhenkel.configbuilder.entry.ConfigEntry;
@@ -11,16 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ModConfig {
-    private final StringList zombiesCantGatherDefault = StringList.of(MinecraftUtil.itemToString(Items.GLOW_INK_SAC));
+    private final StringList ZOMBIES_CANT_GATHER_DEFAULT = StringList.of(Items.GLOW_INK_SAC.toString());
+    private final StringList PIGLINS_CANT_GATHER_DFAULT = StringList.of();
+
     public ConfigEntry<StringList> zombiesCantGather;
     public ConfigEntry<StringList> piglinsCantGather;
 
     public ModConfig(ConfigBuilder builder) {
         zombiesCantGather = builder
-                .entry("zombiescantgather_items", zombiesCantGatherDefault)
+                .entry("zombiescantgather_items", ZOMBIES_CANT_GATHER_DEFAULT)
                 .comment("List of items that zombies should not pick up");
         piglinsCantGather = builder
-                .entry("piglinscantgather_items", StringList.of())
+                .entry("piglinscantgather_items", PIGLINS_CANT_GATHER_DFAULT)
                 .comment("List of items that piglins should not pick up");
     }
 
@@ -61,6 +61,7 @@ public class ModConfig {
     }
 
     public void reset() {
-        zombiesCantGather.set(zombiesCantGatherDefault).save();
+        zombiesCantGather.set(ZOMBIES_CANT_GATHER_DEFAULT).save();
+        piglinsCantGather.set(PIGLINS_CANT_GATHER_DFAULT).save();
     }
 }
