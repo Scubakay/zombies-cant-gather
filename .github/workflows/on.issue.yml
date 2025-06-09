@@ -14,4 +14,4 @@ jobs:
           message: |
             # Issue (re)opened on ${{ github.repository }}
             **Creator:** ${{ github.event.issue.user.login }}
-            **Link**[${{ github.event.issue.title }}](${{ github.event.issue.html_url }})
+            **Link:** [${{ github.event.issue.title }}](${{ github.event.issue.html_url }})
