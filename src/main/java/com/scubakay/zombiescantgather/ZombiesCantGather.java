@@ -1,5 +1,6 @@
 package com.scubakay.zombiescantgather;
 
+import com.scubakay.zombiescantgather.command.PiglinsCantGatherCommand;
 import com.scubakay.zombiescantgather.command.ZombiesCantGatherCommand;
 import com.scubakay.zombiescantgather.command.ZombiesCantGatherPermissionsManager;
 import com.scubakay.zombiescantgather.config.ModConfig;
@@ -32,7 +33,8 @@ public class ZombiesCantGather implements ModInitializer {
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> MinecraftAdmiral.builder(dispatcher, registryAccess)
                 .addCommandClasses(
-                        ZombiesCantGatherCommand.class
+                        ZombiesCantGatherCommand.class,
+                        PiglinsCantGatherCommand.class
                 )
                 .setPermissionManager(PERMISSIONS_MANAGER)
                 .build());

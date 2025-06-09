@@ -13,17 +13,17 @@ import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 import static com.scubakay.zombiescantgather.command.ZombiesCantGatherPermissionsManager.*;
 import static com.scubakay.zombiescantgather.util.CommandUtil.FANCY_MOD_NAME;
 
-@Command({"zombiescantgather", "zombie"})
-public class ZombiesCantGatherCommand {
+@Command({"zombiescantgather", "piglin"})
+public class PiglinsCantGatherCommand {
     @Command("add")
     @RequiresPermission(ADD_PERMISSION)
     public void add(CommandContext<ServerCommandSource> context, @Name("item") ItemStackArgument itemStackArgument) {
         String item = CommandUtil.getIdentifierFromItemStackArgument(itemStackArgument);
         try {
-            MOD_CONFIG.addZombieItem(item);
-            CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies can't gather §f" + item);
+            MOD_CONFIG.addPiglinItem(item);
+            CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can't gather §f" + item);
         } catch (IllegalArgumentException ex) {
-            CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies already can't gather §f" + item);
+            CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins already can't gather §f" + item);
         }
     }
 
@@ -32,18 +32,18 @@ public class ZombiesCantGatherCommand {
     public void list(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
         String item = CommandUtil.getIdentifierFromItemStackArgument(itemStackArgument);
         try {
-            MOD_CONFIG.removeZombieItem(item);
-            CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies can gather §f" + item + "§7 again");
+            MOD_CONFIG.removePiglinItem(item);
+            CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can gather §f" + item + "§7 again");
         } catch (IllegalArgumentException ex) {
-            CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies can already gather §f" + item);
+            CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can already gather §f" + item);
         }
     }
 
     @Command("list")
     @RequiresPermission(LIST_PERMISSION)
     public void list(CommandContext<ServerCommandSource> context) {
-        StringList zombieItems = MOD_CONFIG.zombiesCantGather.get();
-        CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies can't pick up these items:");
-        zombieItems.forEach((item) -> CommandUtil.reply(context, "§f" + item));
+        StringList piglinItems = MOD_CONFIG.piglinsCantGather.get();
+        CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can't pick up these items:");
+        piglinItems.forEach((item) -> CommandUtil.reply(context, "§f" + item));
     }
 }
