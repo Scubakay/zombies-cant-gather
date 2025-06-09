@@ -1,7 +1,9 @@
 package com.scubakay.zombiescantgather;
 
 import com.scubakay.zombiescantgather.command.ZombiesCantGatherCommand;
+import com.scubakay.zombiescantgather.command.ZombiesCantGatherPermissionsManager;
 import com.scubakay.zombiescantgather.config.ModConfig;
+import de.maxhenkel.admiral.MinecraftAdmiral;
 import de.maxhenkel.configbuilder.ConfigBuilder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -12,19 +14,28 @@ import java.nio.file.Path;
 
 public class ZombiesCantGather implements ModInitializer {
     public static final String MOD_ID = "zombiescantgather";
+    @SuppressWarnings("unused")
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public static ModConfig modConfig;
+    public static ModConfig MOD_CONFIG;
+    public static ZombiesCantGatherPermissionsManager PERMISSIONS_MANAGER;
 
     @Override
     public void onInitialize() {
-        modConfig = ConfigBuilder.builder(ModConfig::new)
+        MOD_CONFIG = ConfigBuilder.builder(ModConfig::new)
                 .path(getConfigFile())
                 .strict(true)
                 .saveAfterBuild(true)
                 .build();
 
-        CommandRegistrationCallback.EVENT.register(ZombiesCantGatherCommand::register);
+        PERMISSIONS_MANAGER = new ZombiesCantGatherPermissionsManager();
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> MinecraftAdmiral.builder(dispatcher, registryAccess)
+                .addCommandClasses(
+                        ZombiesCantGatherCommand.class
+                )
+                .setPermissionManager(PERMISSIONS_MANAGER)
+                .build());
     }
 
     public Path getConfigDirectory() {

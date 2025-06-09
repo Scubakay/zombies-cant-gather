@@ -21,6 +21,6 @@ public class ZombieEntityMixin {
     )
     private boolean zombiesCantGather$redirectIsOf(ItemStack stack, Item item) {
         Identifier id = Registries.ITEM.getId(stack.getItem());
-        return ZombiesCantGather.modConfig.zombiesCantGather.get().contains(id.toString());
+        return ZombiesCantGather.MOD_CONFIG.zombiesCantGather.get().contains(id.toString());
     }
 }
