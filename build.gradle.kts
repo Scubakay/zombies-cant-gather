@@ -1,8 +1,11 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     `maven-publish`
     id("fabric-loom")
     //id("dev.kikugie.j52j")
     id("me.modmuss50.mod-publish-plugin")
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 class ModData {
@@ -45,6 +48,11 @@ repositories {
     strictMaven("https://maven.maxhenkel.de/repository/public", "MaxHenkel")
 }
 
+val shadowLibrary: Configuration by configurations.creating {
+    isCanBeResolved = true
+    isCanBeConsumed = false
+}
+
 dependencies {
     fun fapi(vararg modules: String) = modules.forEach {
         modImplementation(fabricApi.module(it, deps["fabric_api"]))
@@ -64,8 +72,8 @@ dependencies {
 
     implementation("de.maxhenkel.configbuilder:configbuilder:${deps["maxhenkel_configbuilder"]}")
     include("de.maxhenkel.configbuilder:configbuilder:${deps["maxhenkel_configbuilder"]}")
-
     modImplementation("maven.modrinth:admiral:${deps["maxhenkel_admiral"]}")
+    shadowLibrary("maven.modrinth:admiral:${deps["maxhenkel_admiral"]}")
     modImplementation("me.lucko:fabric-permissions-api:${deps["fabric_permission_api"]}")
 }
 
@@ -88,6 +96,18 @@ java {
     val java = if (stonecutter.eval(mcVersion, ">=1.20.6")) JavaVersion.VERSION_21 else JavaVersion.VERSION_17
     targetCompatibility = java
     sourceCompatibility = java
+}
+
+tasks.named<ShadowJar>("shadowJar") {
+    configurations = listOf(shadowLibrary)
+    archiveClassifier = "dev-shadow"
+    relocate("de.maxhenkel.admiral", "com.scubakay.autorelog.admiral")
+}
+
+tasks {
+    remapJar {
+        inputFile = shadowJar.get().archiveFile
+    }
 }
 
 tasks.processResources {
