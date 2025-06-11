@@ -1,6 +1,7 @@
 package com.scubakay.zombiescantgather;
 
 import com.scubakay.zombiescantgather.command.PiglinsCantGatherCommand;
+import com.scubakay.zombiescantgather.command.RootCommand;
 import com.scubakay.zombiescantgather.command.ZombiesCantGatherCommand;
 import com.scubakay.zombiescantgather.config.ModConfig;
 import de.maxhenkel.configbuilder.ConfigBuilder;
@@ -26,6 +27,8 @@ public class ZombiesCantGather implements ModInitializer {
                 .saveAfterBuild(true)
                 .build();
 
+
+        CommandRegistrationCallback.EVENT.register(RootCommand::register);
         CommandRegistrationCallback.EVENT.register(ZombiesCantGatherCommand::register);
         CommandRegistrationCallback.EVENT.register(PiglinsCantGatherCommand::register);
     }
