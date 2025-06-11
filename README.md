@@ -16,6 +16,9 @@ Now with support for Piglins!
 
 ## Configuring the blacklists
 
+The `/zombiescantgather` command has options to add/remove/list items that a Zombie can't pick up. The
+command will give you suggestions for the items you want to add to the list.
+
 The `/zombiescantgather` command has a list for both zombies and piglins:
 ```properties
 /zombiescantgather zombie list
@@ -30,14 +33,16 @@ Zombies and piglins can not pick up any items on their list. To add items to the
 And of course you can also remove items from the lists so the zombies and piglins can pick up the items again:
 
 ```properties
-/zombiescantgather zombie add minecraft:rotten_flesh
-/zombiescantgather piglin add minecraft:rotten_flesh
+/zombiescantgather zombie remove minecraft:rotten_flesh
+/zombiescantgather piglin remove minecraft:rotten_flesh
 ```
 The item ids are provided as command suggestions, so you don't need to worry about the names.
 
-
-The `/zombiescantgather` command has options to add/remove/list items that a Zombie can't pick up. The
-command will give you suggestions for the items you want to add to the list.
+If you added weird stuff and want to start over, use the reset commands:
+```properties
+/zombiescantgather zombie reset
+/zombiescantgather piglin reset
+```
 
 ### Manual configuration
 
@@ -45,7 +50,7 @@ The list of items a Zombie can't pick up is stored in a config file: `config/zom
 
 ```properties
 zombiescantgather_items=minecraft\:glow_ink_sac,minecraft\:rotten_flesh,minecraft\:egg,minecraft\:bone
-zombiescantgather_items=minecraft\:rotten_flesh,minecraft\:egg
+piglinscantgather_items=minecraft\:rotten_flesh,minecraft\:egg
 ```
 Items are a comma separated value with escaped colons.
 
