@@ -64,4 +64,12 @@ public class RootCommand {
                 .executes(command)
                 .build();
     }
+
+    protected static LiteralCommandNode<ServerCommandSource> getReset(final Command<ServerCommandSource> command) {
+        return CommandManager
+                .literal("reset")
+                .requires(ctx -> hasPermission(ctx, RESET_PERMISSION))
+                .executes(command)
+                .build();
+    }
 }

@@ -27,7 +27,6 @@ public class ZombiesCantGather implements ModInitializer {
                 .saveAfterBuild(true)
                 .build();
 
-
         CommandRegistrationCallback.EVENT.register(RootCommand::register);
         CommandRegistrationCallback.EVENT.register(ZombiesCantGatherCommand::register);
         CommandRegistrationCallback.EVENT.register(PiglinsCantGatherCommand::register);

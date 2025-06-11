@@ -8,15 +8,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ModConfig {
+    private final StringList DEFAULT_ZOMBIE_ITEMS = StringList.of("minecraft:glow_ink_sac");
+    private final StringList DEFAULT_PIGLIN_ITEMS = StringList.of();
+
     public ConfigEntry<StringList> zombiesCantGather;
     public ConfigEntry<StringList> piglinsCantGather;
 
     public ModConfig(ConfigBuilder builder) {
+
         zombiesCantGather = builder
-                .entry("zombiescantgather_items", StringList.of("minecraft:glow_ink_sac"))
+                .entry("zombiescantgather_items", DEFAULT_ZOMBIE_ITEMS)
                 .comment("List of items that zombies should not pick up");
         piglinsCantGather = builder
-                .entry("piglinscantgather_items", StringList.of())
+                .entry("piglinscantgather_items", DEFAULT_PIGLIN_ITEMS)
                 .comment("List of items that piglins should not pick up");
     }
 
@@ -38,6 +42,10 @@ public class ModConfig {
         zombiesCantGather.set(StringList.of(list)).save();
     }
 
+    public void resetZombieItems() {
+        zombiesCantGather.set(DEFAULT_ZOMBIE_ITEMS).save();
+    }
+
     public void addPiglinItem(String item) {
         List<String> list = new ArrayList<>(piglinsCantGather.get());
         if (list.contains(item)) {
@@ -54,5 +62,9 @@ public class ModConfig {
         }
         list.remove(item);
         piglinsCantGather.set(StringList.of(list)).save();
+    }
+
+    public void resetPiglinItems() {
+        piglinsCantGather.set(DEFAULT_PIGLIN_ITEMS).save();
     }
 }
