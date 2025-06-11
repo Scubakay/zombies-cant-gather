@@ -40,6 +40,7 @@ public class PiglinsCantGatherCommand extends RootCommand {
         ));
 
         zombie.addChild(getList(PiglinsCantGatherCommand::list));
+        zombie.addChild(getReset(PiglinsCantGatherCommand::reset));
     }
 
     public static int add(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
@@ -68,6 +69,12 @@ public class PiglinsCantGatherCommand extends RootCommand {
         StringList piglinItems = MOD_CONFIG.piglinsCantGather.get();
         CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can't pick up these items:");
         piglinItems.forEach((item) -> CommandUtil.reply(context, "§f" + item));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    public static int reset(CommandContext<ServerCommandSource> context) {
+        MOD_CONFIG.resetPiglinItems();
+        CommandUtil.reply(context, FANCY_MOD_NAME + "Reset piglin items");
         return Command.SINGLE_SUCCESS;
     }
 }

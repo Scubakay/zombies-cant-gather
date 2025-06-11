@@ -10,6 +10,7 @@ public class PermissionManager {
     public static final String ADD_PERMISSION = "zombiescantgather.add";
     public static final String REMOVE_PERMISSION = "zombiescantgather.remove";
     public static final String LIST_PERMISSION = "zombiescantgather.list";
+    public static final String RESET_PERMISSION = "zombiescantgather.reset";
     private static final int DEFAULT_PERMISSION_LEVEL = 4;
 
     private static final boolean fabricPermissionsApi = FabricLoader.getInstance().isModLoaded("fabric-permissions-api-v0");
