@@ -14,7 +14,6 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
-import static com.scubakay.zombiescantgather.util.CommandUtil.FANCY_MOD_NAME;
 
 public class ZombiesCantGatherCommand extends RootCommand {
     private static final SuggestionProvider<ServerCommandSource> LISTED_ITEM_SUGGESTIONS = (context, builder) -> {
@@ -28,28 +27,28 @@ public class ZombiesCantGatherCommand extends RootCommand {
                 .build();
         getRoot().addChild(zombie);
 
-        zombie.addChild(getAdd(
+        zombie.addChild(CommandUtil.getAddNode(
                 registryAccess,
                 ctx -> add(ctx, ItemStackArgumentType.getItemStackArgument(ctx, "item"))
         ));
 
-        zombie.addChild(getRemove(
+        zombie.addChild(CommandUtil.getRemoveNode(
                 registryAccess,
                 LISTED_ITEM_SUGGESTIONS,
                 ctx -> remove(ctx, ItemStackArgumentType.getItemStackArgument(ctx, "listedItem"))
         ));
 
-        zombie.addChild(getList(ZombiesCantGatherCommand::list));
-        zombie.addChild(getReset(ZombiesCantGatherCommand::reset));
+        zombie.addChild(CommandUtil.getListNode(ZombiesCantGatherCommand::list));
+        zombie.addChild(CommandUtil.getResetNode(ZombiesCantGatherCommand::reset));
     }
 
     public static int add(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
         String item = itemStackArgument.getItem().toString();
         try {
             MOD_CONFIG.addZombieItem(item);
-            CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies can't gather §f" + item);
+            CommandUtil.reply(context, "Zombies can't gather §f" + item);
         } catch (IllegalArgumentException ex) {
-            CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies already can't gather §f" + item);
+            CommandUtil.reply(context, "Zombies already can't gather §f" + item);
         }
         return Command.SINGLE_SUCCESS;
     }
@@ -58,23 +57,23 @@ public class ZombiesCantGatherCommand extends RootCommand {
         String item = itemStackArgument.getItem().toString();
         try {
             MOD_CONFIG.removeZombieItem(item);
-            CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies can gather §f" + item + "§7 again");
+            CommandUtil.reply(context, "Zombies can gather §f" + item + "§7 again");
         } catch (IllegalArgumentException ex) {
-            CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies can already gather §f" + item);
+            CommandUtil.reply(context, "Zombies can already gather §f" + item);
         }
         return Command.SINGLE_SUCCESS;
     }
 
     public static int list(CommandContext<ServerCommandSource> context) {
         StringList zombieItems = MOD_CONFIG.zombiesCantGather.get();
-        CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies can't pick up these items:");
-        zombieItems.forEach((item) -> CommandUtil.reply(context, "§f" + item));
+        CommandUtil.reply(context, "Zombies can't pick up these items:");
+        zombieItems.forEach((item) -> CommandUtil.reply(context, "§f" + item, false));
         return Command.SINGLE_SUCCESS;
     }
 
     public static int reset(CommandContext<ServerCommandSource> context) {
         MOD_CONFIG.resetZombieItems();
-        CommandUtil.reply(context, FANCY_MOD_NAME + "Reset zombie items");
+        CommandUtil.reply(context, "Reset zombie items");
         return Command.SINGLE_SUCCESS;
     }
 }

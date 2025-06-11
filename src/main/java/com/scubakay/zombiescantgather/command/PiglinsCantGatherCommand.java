@@ -28,28 +28,28 @@ public class PiglinsCantGatherCommand extends RootCommand {
                 .build();
         getRoot().addChild(zombie);
 
-        zombie.addChild(getAdd(
+        zombie.addChild(CommandUtil.getAddNode(
                 registryAccess,
                 ctx -> add(ctx, ItemStackArgumentType.getItemStackArgument(ctx, "item"))
         ));
 
-        zombie.addChild(getRemove(
+        zombie.addChild(CommandUtil.getRemoveNode(
                 registryAccess,
                 LISTED_ITEM_SUGGESTIONS,
                 ctx -> remove(ctx, ItemStackArgumentType.getItemStackArgument(ctx, "listedItem"))
         ));
 
-        zombie.addChild(getList(PiglinsCantGatherCommand::list));
-        zombie.addChild(getReset(PiglinsCantGatherCommand::reset));
+        zombie.addChild(CommandUtil.getListNode(PiglinsCantGatherCommand::list));
+        zombie.addChild(CommandUtil.getResetNode(PiglinsCantGatherCommand::reset));
     }
 
     public static int add(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
         String item = itemStackArgument.getItem().toString();
         try {
             MOD_CONFIG.addPiglinItem(item);
-            CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can't gather §f" + item);
+            CommandUtil.reply(context, "Piglins can't gather §f" + item);
         } catch (IllegalArgumentException ex) {
-            CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins already can't gather §f" + item);
+            CommandUtil.reply(context, "Piglins already can't gather §f" + item);
         }
         return Command.SINGLE_SUCCESS;
     }
@@ -58,17 +58,17 @@ public class PiglinsCantGatherCommand extends RootCommand {
         String item = itemStackArgument.getItem().toString();
         try {
             MOD_CONFIG.removePiglinItem(item);
-            CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can gather §f" + item + "§7 again");
+            CommandUtil.reply(context, "Piglins can gather §f" + item + "§7 again");
         } catch (IllegalArgumentException ex) {
-            CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can already gather §f" + item);
+            CommandUtil.reply(context, "Piglins can already gather §f" + item);
         }
         return Command.SINGLE_SUCCESS;
     }
 
     public static int list(CommandContext<ServerCommandSource> context) {
         StringList piglinItems = MOD_CONFIG.piglinsCantGather.get();
-        CommandUtil.reply(context, FANCY_MOD_NAME + "Piglins can't pick up these items:");
-        piglinItems.forEach((item) -> CommandUtil.reply(context, "§f" + item));
+        CommandUtil.reply(context, "Piglins can't pick up these items:");
+        piglinItems.forEach((item) -> CommandUtil.reply(context, "§f" + item, false));
         return Command.SINGLE_SUCCESS;
     }
 
