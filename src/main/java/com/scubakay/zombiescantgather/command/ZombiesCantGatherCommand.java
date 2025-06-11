@@ -1,35 +1,63 @@
 package com.scubakay.zombiescantgather.command;
 
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.scubakay.zombiescantgather.util.CommandUtil;
-import de.maxhenkel.admiral.annotations.Command;
-import de.maxhenkel.admiral.annotations.Name;
-import de.maxhenkel.admiral.annotations.RequiresPermission;
 import de.maxhenkel.configbuilder.custom.StringList;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.ItemStackArgument;
+import net.minecraft.command.argument.ItemStackArgumentType;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
-import static com.scubakay.zombiescantgather.command.ZombiesCantGatherPermissionsManager.*;
 import static com.scubakay.zombiescantgather.util.CommandUtil.FANCY_MOD_NAME;
 
-@Command({"zombiescantgather", "zombie"})
 public class ZombiesCantGatherCommand {
-    @Command("add")
-    @RequiresPermission(ADD_PERMISSION)
-    public void add(CommandContext<ServerCommandSource> context, @Name("item") ItemStackArgument itemStackArgument) {
+    private static final SuggestionProvider<ServerCommandSource> LISTED_ITEM_SUGGESTIONS = (context, builder) -> {
+        for (String s : MOD_CONFIG.zombiesCantGather.get()) builder.suggest(s);
+        return builder.buildFuture();
+    };
+
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredCommandRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
+        dispatcher.register(CommandManager
+                .literal("zombiescantgather")
+                .requires(source -> source.hasPermissionLevel(4)) // Must be OP to execute
+                .then(CommandManager
+                        .literal("zombie")
+                        .then(CommandManager
+                                .literal("add")
+                                .then(CommandManager
+                                        .argument("item", ItemStackArgumentType.itemStack(ignoredCommandRegistryAccess))
+                                        .executes(ctx -> add(ctx, ItemStackArgumentType.getItemStackArgument(ctx, "item")))
+                                ))
+                        .then(CommandManager
+                                .literal("remove")
+                                .then(CommandManager
+                                        .argument("listedItem", ItemStackArgumentType.itemStack(ignoredCommandRegistryAccess))
+                                        .suggests(LISTED_ITEM_SUGGESTIONS)
+                                        .executes(ctx -> remove(ctx, ItemStackArgumentType.getItemStackArgument(ctx, "listedItem")))
+                                ))
+                        .then(CommandManager
+                                .literal("list")
+                                .executes(ZombiesCantGatherCommand::list)
+                        )));
+    }
+
+    public static int add(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
         String item = itemStackArgument.getItem().toString();
         try {
-            MOD_CONFIG.addZombieItem(itemStackArgument.getItem().toString());
+            MOD_CONFIG.addZombieItem(item);
             CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies can't gather §f" + item);
         } catch (IllegalArgumentException ex) {
             CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies already can't gather §f" + item);
         }
+        return Command.SINGLE_SUCCESS;
     }
 
-    @Command("remove")
-    @RequiresPermission(REMOVE_PERMISSION)
-    public void list(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
+    public static int remove(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
         String item = itemStackArgument.getItem().toString();
         try {
             MOD_CONFIG.removeZombieItem(item);
@@ -37,13 +65,13 @@ public class ZombiesCantGatherCommand {
         } catch (IllegalArgumentException ex) {
             CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies can already gather §f" + item);
         }
+        return Command.SINGLE_SUCCESS;
     }
 
-    @Command("list")
-    @RequiresPermission(LIST_PERMISSION)
-    public void list(CommandContext<ServerCommandSource> context) {
+    public static int list(CommandContext<ServerCommandSource> context) {
         StringList zombieItems = MOD_CONFIG.zombiesCantGather.get();
         CommandUtil.reply(context, FANCY_MOD_NAME + "Zombies can't pick up these items:");
         zombieItems.forEach((item) -> CommandUtil.reply(context, "§f" + item));
+        return Command.SINGLE_SUCCESS;
     }
 }

@@ -2,9 +2,7 @@ package com.scubakay.zombiescantgather;
 
 import com.scubakay.zombiescantgather.command.PiglinsCantGatherCommand;
 import com.scubakay.zombiescantgather.command.ZombiesCantGatherCommand;
-import com.scubakay.zombiescantgather.command.ZombiesCantGatherPermissionsManager;
 import com.scubakay.zombiescantgather.config.ModConfig;
-import de.maxhenkel.admiral.MinecraftAdmiral;
 import de.maxhenkel.configbuilder.ConfigBuilder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -19,7 +17,6 @@ public class ZombiesCantGather implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public static ModConfig MOD_CONFIG;
-    public static ZombiesCantGatherPermissionsManager PERMISSIONS_MANAGER;
 
     @Override
     public void onInitialize() {
@@ -29,15 +26,8 @@ public class ZombiesCantGather implements ModInitializer {
                 .saveAfterBuild(true)
                 .build();
 
-        PERMISSIONS_MANAGER = new ZombiesCantGatherPermissionsManager();
-
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> MinecraftAdmiral.builder(dispatcher, registryAccess)
-                .addCommandClasses(
-                        ZombiesCantGatherCommand.class,
-                        PiglinsCantGatherCommand.class
-                )
-                .setPermissionManager(PERMISSIONS_MANAGER)
-                .build());
+        CommandRegistrationCallback.EVENT.register(ZombiesCantGatherCommand::register);
+        CommandRegistrationCallback.EVENT.register(PiglinsCantGatherCommand::register);
     }
 
     public Path getConfigDirectory() {
