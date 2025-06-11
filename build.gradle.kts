@@ -72,8 +72,6 @@ dependencies {
 
     implementation("de.maxhenkel.configbuilder:configbuilder:${deps["maxhenkel_configbuilder"]}")
     include("de.maxhenkel.configbuilder:configbuilder:${deps["maxhenkel_configbuilder"]}")
-    modImplementation("maven.modrinth:admiral:${deps["maxhenkel_admiral"]}")
-    shadowLibrary("maven.modrinth:admiral:${deps["maxhenkel_admiral"]}")
     modImplementation("me.lucko:fabric-permissions-api:${deps["fabric_permission_api"]}")
 }
 
