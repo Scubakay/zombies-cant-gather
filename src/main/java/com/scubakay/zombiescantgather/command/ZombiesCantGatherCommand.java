@@ -13,6 +13,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
+import static com.scubakay.zombiescantgather.command.PermissionManager.*;
 import static com.scubakay.zombiescantgather.util.CommandUtil.FANCY_MOD_NAME;
 
 public class ZombiesCantGatherCommand {
@@ -24,17 +25,19 @@ public class ZombiesCantGatherCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredCommandRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
         dispatcher.register(CommandManager
                 .literal("zombiescantgather")
-                .requires(source -> source.hasPermissionLevel(4)) // Must be OP to execute
+                .requires(ctx -> PermissionManager.hasPermission(ctx, ROOT_PERMISSION))
                 .then(CommandManager
                         .literal("zombie")
                         .then(CommandManager
                                 .literal("add")
+                                .requires(ctx -> PermissionManager.hasPermission(ctx, ADD_PERMISSION))
                                 .then(CommandManager
                                         .argument("item", ItemStackArgumentType.itemStack(ignoredCommandRegistryAccess))
                                         .executes(ctx -> add(ctx, ItemStackArgumentType.getItemStackArgument(ctx, "item")))
                                 ))
                         .then(CommandManager
                                 .literal("remove")
+                                .requires(ctx -> PermissionManager.hasPermission(ctx, REMOVE_PERMISSION))
                                 .then(CommandManager
                                         .argument("listedItem", ItemStackArgumentType.itemStack(ignoredCommandRegistryAccess))
                                         .suggests(LISTED_ITEM_SUGGESTIONS)
@@ -42,6 +45,7 @@ public class ZombiesCantGatherCommand {
                                 ))
                         .then(CommandManager
                                 .literal("list")
+                                .requires(ctx -> PermissionManager.hasPermission(ctx, LIST_PERMISSION))
                                 .executes(ZombiesCantGatherCommand::list)
                         )));
     }
