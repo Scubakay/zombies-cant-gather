@@ -17,17 +17,22 @@ public class EntityTracker extends PersistentState {
 
     private final HashMap<UUID, NbtCompound> trackedEntities = new HashMap<>();
 
+    public void remove(UUID uuid) {
+        this.trackedEntities.remove(uuid);
+        this.markDirty();
+    }
+
     public void clear() {
         this.trackedEntities.clear();
         this.markDirty();
     }
 
     public HashMap<UUID, NbtCompound> getTrackedEntities() {
-        return trackedEntities;
+        return this.trackedEntities;
     }
 
     public int trackEntity(UUID uuid, NbtCompound entity) {
-        NbtCompound trackedEntity = trackedEntities.get(uuid);
+        NbtCompound trackedEntity = this.trackedEntities.get(uuid);
         int count = 0;
         if (trackedEntity != null) {
             count = trackedEntity.getInt(TRACKED_COUNT);
@@ -41,7 +46,7 @@ public class EntityTracker extends PersistentState {
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
         NbtCompound entitiesNbt = new NbtCompound();
-        trackedEntities.forEach((uuid, entity) -> entitiesNbt.put(uuid.toString(), entity));
+        this.trackedEntities.forEach((uuid, entity) -> entitiesNbt.put(uuid.toString(), entity));
         nbt.put(TRACKED_ENTITIES, entitiesNbt);
         return nbt;
     }
