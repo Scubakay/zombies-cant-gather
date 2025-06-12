@@ -27,6 +27,10 @@ public class CommandUtil {
         context.getSource().sendFeedback(() -> Text.literal(message), false);
     }
 
+    public static void reply(CommandContext<ServerCommandSource> context, Text reply) {
+        context.getSource().sendFeedback(() -> reply, false);
+    }
+
     public static LiteralCommandNode<ServerCommandSource> getAddNode(CommandRegistryAccess ignoredCommandRegistryAccess, final Command<ServerCommandSource> command) {
         LiteralCommandNode<ServerCommandSource> addNode = CommandManager
                 .literal("add")

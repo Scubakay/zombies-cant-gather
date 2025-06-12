@@ -28,17 +28,17 @@ public class EntityTypeMixin {
             ItemStack item = zombie.getHandItems().iterator().next();
             if (!world.isClient() && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
                 EntityTracker state = EntityTracker.getWorldState((ServerWorld) world);
-                state.trackedEntities.put(entity.getUuid(), nbtCompound);
+                int count = state.trackEntity(entity.getUuid(), nbtCompound);
                 state.markDirty();
-                LOGGER.info("Found {} with forbidden item: {} at position {}", entity.getDisplayName(), item.getItem(), zombie.getPos());
+                LOGGER.info("Found zombie {} time(s) with blacklisted item \"{}\" at position {}", count, item.getItem(), zombie.getPos());
             }
         } else if (entity instanceof PiglinEntity piglin) {
             ItemStack item = piglin.getHandItems().iterator().next();
             if (!world.isClient() && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
                 EntityTracker state = EntityTracker.getWorldState((ServerWorld) world);
-                state.trackedEntities.put(entity.getUuid(), nbtCompound);
+                int count = state.trackEntity(entity.getUuid(), nbtCompound);
                 state.markDirty();
-                LOGGER.info("Found {} with forbidden item: {} at position {}", entity.getDisplayName(), item.getItem(), piglin.getPos());
+                LOGGER.info("Found piglin {} time(s) with blacklisted item \"{}\" at position {}", count, item.getItem(), piglin.getPos());
             }
         }
     }

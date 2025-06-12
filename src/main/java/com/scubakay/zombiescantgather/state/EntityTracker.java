@@ -13,8 +13,25 @@ import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_ID;
 
 public class EntityTracker extends PersistentState {
     public static final String TRACKED_ENTITIES = "TrackedEntities";
+    public static final String TRACKED_COUNT = "TrackedCount";
 
-    public HashMap<UUID, NbtCompound> trackedEntities = new HashMap<>();
+    private final HashMap<UUID, NbtCompound> trackedEntities = new HashMap<>();
+
+    public HashMap<UUID, NbtCompound> getTrackedEntities() {
+        return trackedEntities;
+    }
+
+    public int trackEntity(UUID uuid, NbtCompound entity) {
+        NbtCompound trackedEntity = trackedEntities.get(uuid);
+        int count = 0;
+        if (trackedEntity != null) {
+            count = trackedEntity.getInt(TRACKED_COUNT);
+        }
+        entity.putInt(TRACKED_COUNT, ++count);
+        this.trackedEntities.put(uuid, entity);
+        this.markDirty();
+        return count;
+    }
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {

@@ -1,2 +1,2 @@
-- #13 Suggest items from the list in remove commands
-- #21 Add reset commands for both zombie and piglin items
+- #19 Alert console when entity with blacklisted item is loaded
+- #30 New command 

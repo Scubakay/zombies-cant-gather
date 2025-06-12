@@ -12,7 +12,7 @@
     "sources": "https://github.com/Scubakay/zombies-cant-gather"
   },
   "license": "MIT",
-  "icon": "assets/template/icon.png",
+  "icon": "assets/zombiescantgather/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
