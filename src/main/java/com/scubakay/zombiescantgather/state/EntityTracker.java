@@ -17,6 +17,11 @@ public class EntityTracker extends PersistentState {
 
     private final HashMap<UUID, NbtCompound> trackedEntities = new HashMap<>();
 
+    public void clear() {
+        this.trackedEntities.clear();
+        this.markDirty();
+    }
+
     public HashMap<UUID, NbtCompound> getTrackedEntities() {
         return trackedEntities;
     }

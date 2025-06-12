@@ -32,6 +32,12 @@ public class TrackedCommand extends RootCommand {
                 .executes(TrackedCommand::list)
                 .build();
         tracked.addChild(list);
+
+        LiteralCommandNode<ServerCommandSource> reset = CommandManager
+                .literal("reset")
+                .executes(TrackedCommand::reset)
+                .build();
+        tracked.addChild(reset);
     }
 
     public static int list(CommandContext<ServerCommandSource> context) {
@@ -61,6 +67,11 @@ public class TrackedCommand extends RootCommand {
             )));
             CommandUtil.reply(context, message);
         });
+        return Command.SINGLE_SUCCESS;
+    }
+
+    public static int reset(CommandContext<ServerCommandSource> context) {
+        EntityTracker.getWorldState(context.getSource().getWorld()).clear();
         return Command.SINGLE_SUCCESS;
     }
 }
