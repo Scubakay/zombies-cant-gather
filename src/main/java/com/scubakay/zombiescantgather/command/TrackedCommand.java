@@ -18,8 +18,9 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.dimension.DimensionTypes;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.List;
@@ -70,20 +71,8 @@ public class TrackedCommand extends RootCommand {
 
         for (int i = startItem; i < endItem; i++) {
             NbtCompound entity = tracker.get(i);
-
-            String dimension = entity.getString(DIMENSION);
-            final int dimensionColor = getDimensionColor(dimension);
-            String tpCommand = String.format("/tp @s %s", entity.getUuid("UUID").toString());
-            final Text tpButton = getTpButton(context, dimensionColor, tpCommand);
-
-            NbtList positionList = entity.getList("Pos", NbtElement.DOUBLE_TYPE);
-            Vec3d pos = new Vec3d(positionList.getDouble(0), positionList.getDouble(1), positionList.getDouble(2));
-            final Text toolTip = getTrackerRowToolTip(entity, dimension, dimensionColor, pos);
-
-            int loadedCount = entity.getInt(TRACKED_COUNT);
-            NbtCompound firstHandItem = (NbtCompound) entity.getList("HandItems", NbtElement.COMPOUND_TYPE).getFirst();
-            final Text trackerRow = getTrackerRow(toolTip, entity, loadedCount, firstHandItem);
-
+            final Text tpButton = getTpButton(context, entity);
+            final Text trackerRow = getTrackerRow(entity);
             CommandUtil.reply(context, tpButton.copy().append(trackerRow));
         }
 
@@ -92,65 +81,72 @@ public class TrackedCommand extends RootCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int getDimensionColor(String dimension) {
-        int dimensionColor;
-        if (dimension.equals(DimensionTypes.OVERWORLD_ID.toString())) {
-            dimensionColor = Colors.BLUE;
-        } else if (dimension.equals(DimensionTypes.THE_NETHER_ID.toString())) {
-            dimensionColor = Colors.RED;
-        } else {
-            dimensionColor = Colors.YELLOW;
-        }
-        return dimensionColor;
+    public static int reset(CommandContext<ServerCommandSource> context) {
+        EntityTracker.getServerState(context.getSource().getServer()).clear();
+        return Command.SINGLE_SUCCESS;
     }
 
-    private static Text getTpButton(CommandContext<ServerCommandSource> context, int dimensionColor, String tpCommand) {
-        Text tpButton = Text.empty();
-        if (PermissionManager.hasPermission(context.getSource(), PermissionManager.TELEPORT_PERMISSION)) {
-            tpButton = Text.literal("[tp] ")
-                    .styled(style -> style
-                            .withColor(dimensionColor)
-                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, tpCommand))
-                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(tpCommand)))
-                    );
+    private static Text getTpButton(CommandContext<ServerCommandSource> context, NbtCompound entity) {
+        if (!PermissionManager.hasPermission(context.getSource(), PermissionManager.TELEPORT_PERMISSION)) {
+            return Text.empty();
         }
-        return tpButton;
+        return Text.literal("[TP] ")
+                .styled(style -> style
+                        .withColor(getDimensionColor(entity))
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getTpCommand(entity)))
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTpButtonToolTIp(entity))));
     }
 
-    private static Text getTrackerRowToolTip(NbtCompound entity, String dimension, int dimensionColor, Vec3d pos) {
-        return Text.literal(entity.getString("CustomName"))
-                .styled(style -> style.withBold(true))
-                .append(Text.literal("\nDimension: ")
-                        .styled((Style style) -> style
+    private static Text getTpButtonToolTIp(NbtCompound entity) {
+        return Text.literal(getTpButtonTitle(entity))
+                .styled(style -> style
+                        .withColor(getDimensionColor(entity))
+                        .withBold(true))
+                .append(Text.literal(getTpCommand(entity))
+                        .styled(style -> style
                                 .withColor(Colors.WHITE)
-                                .withBold(false)))
-                .append(Text.literal(dimension)
-                        .styled(style -> style
-                                .withColor(dimensionColor)))
-                .append(Text.literal("\nLocation: ")
-                        .styled(style -> style
-                                .withBold(false)))
-                .append(Text.literal(pos.toString()));
+                                .withBold(false)));
     }
 
-    private static Text getTrackerRow(Text hoverMessage, NbtCompound entity, int loadedCount, NbtCompound firstHandItem) {
+    private static Text getTrackerRow(NbtCompound entity) {
         return Text
                 .literal("Loaded ") // Loaded
                 .styled(style -> style
                         .withColor(Colors.GRAY)
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverMessage)))
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, getTpCommand(entity)))
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTrackerRowToolTip(entity))))
                 .append(Text.literal(entity.getString("CustomName")) // <name>
                         .styled(style -> style
                                 .withColor(Colors.WHITE)))
                 .append(Text.literal(" ")
                         .styled(style -> style
                                 .withColor(Colors.GRAY)))
-                .append(Text.literal(String.valueOf(loadedCount))) // <loadedCount>
+                .append(Text.literal(getLoadedCountString(entity))) // <loadedCount>
                 .append(Text.literal(" time(s) holding ") // time(s) holding
                         .styled(style -> style
                                 .withColor(Colors.GRAY)))
-                .append(Text.literal(firstHandItem.getString("id"))
+                .append(Text.literal(getFirstHandItemString(entity))
                         .styled(style -> style
+                                .withColor(Colors.WHITE)));
+    }
+
+    private static Text getTrackerRowToolTip(NbtCompound entity) {
+        return Text.literal(entity.getString("CustomName"))
+                .styled(style -> style.withBold(true))
+                .append(Text.literal("\nDimension: ")
+                        .styled((Style style) -> style
+                                .withColor(Colors.GRAY)
+                                .withBold(false)))
+                .append(Text.literal(getDimensionAsString(entity))
+                        .styled(style -> style
+                                .withColor(getDimensionColor(entity))))
+                .append(Text.literal("\nLocation: ")
+                        .styled(style -> style
+                                .withBold(false)
+                                .withColor(Colors.GRAY)))
+                .append(Text.literal(getBlockPos(entity).toShortString())
+                        .styled(style -> style
+                                .withBold(false)
                                 .withColor(Colors.WHITE)));
     }
 
@@ -180,8 +176,54 @@ public class TrackedCommand extends RootCommand {
         return navigation;
     }
 
-    public static int reset(CommandContext<ServerCommandSource> context) {
-        EntityTracker.getServerState(context.getSource().getServer()).clear();
-        return Command.SINGLE_SUCCESS;
+    private static @NotNull String getTpCommand(NbtCompound entity) {
+        final String dimension = getDimensionAsString(entity);
+        final BlockPos pos = getBlockPos(entity);
+        return String.format("/execute in %s run tp @s %d %d %d", dimension, pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    private static String getDimensionAsString(NbtCompound entity) {
+        return entity.getString(DIMENSION);
+    }
+
+    private static @NotNull BlockPos getBlockPos(NbtCompound entity) {
+        NbtList positionList = entity.getList("Pos", NbtElement.DOUBLE_TYPE);
+        return new BlockPos((int) positionList.getDouble(0), (int) positionList.getDouble(1), (int) positionList.getDouble(2));
+    }
+
+    private static int getDimensionColor(NbtCompound entity) {
+        final String dimension = getDimensionAsString(entity);
+
+        int dimensionColor = Colors.WHITE;
+        if (dimension.equals(DimensionTypes.OVERWORLD_ID.toString())) {
+            dimensionColor = Colors.BLUE;
+        } else if (dimension.equals(DimensionTypes.THE_NETHER_ID.toString())) {
+            dimensionColor = Colors.RED;
+        } else if (dimension.equals(DimensionTypes.THE_END_ID.toString())) {
+            dimensionColor = Colors.YELLOW;
+        }
+        return dimensionColor;
+    }
+
+    private static String getFirstHandItemString(NbtCompound entity) {
+        return ((NbtCompound) entity.getList("HandItems", NbtElement.COMPOUND_TYPE).getFirst()).getString("id");
+    }
+
+    private static @NotNull String getLoadedCountString(NbtCompound entity) {
+        return String.valueOf(entity.getInt(TRACKED_COUNT));
+    }
+
+    private static @NotNull String getTpButtonTitle(NbtCompound entity) {
+        final String dimension = getDimensionAsString(entity);
+
+        String title = "Teleport to entity ";
+        if (dimension.equals(DimensionTypes.OVERWORLD_ID.toString())) {
+            title += "the Overworld\n";
+        } else if (dimension.equals(DimensionTypes.THE_NETHER_ID.toString())) {
+            title += "the Nether\n";
+        } else if (dimension.equals(DimensionTypes.THE_END_ID.toString())) {
+            title += "the End\n";
+        }
+        return title;
     }
 }
