@@ -30,7 +30,7 @@ public class EntityTypeMixin {
                 EntityTracker state = EntityTracker.getServerState(world.getServer());
                 int count = state.trackEntity(entity.getUuid(), entity.getWorld().getDimensionEntry(), nbtCompound);
                 state.markDirty();
-                LOGGER.info("Found zombie {} time(s) with blacklisted item \"{}\" at position {}", count, item.getItem(), zombie.getPos());
+                LOGGER.info("Found zombie {} time(s) with blacklisted item \"{}\" at position {}", count, item.getItem(), zombie.getBlockPos());
             }
         } else if (entity instanceof PiglinEntity piglin) {
             ItemStack item = piglin.getHandItems().iterator().next();
@@ -38,7 +38,7 @@ public class EntityTypeMixin {
                 EntityTracker state = EntityTracker.getServerState(world.getServer());
                 int count = state.trackEntity(entity.getUuid(), entity.getWorld().getDimensionEntry(), nbtCompound);
                 state.markDirty();
-                LOGGER.info("Found piglin {} time(s) with blacklisted item \"{}\" at position {}", count, item.getItem(), piglin.getPos());
+                LOGGER.info("Found piglin {} time(s) with blacklisted item \"{}\" at position {}", count, item.getItem(), piglin.getBlockPos());
             }
         }
     }
