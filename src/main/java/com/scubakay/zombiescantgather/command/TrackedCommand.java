@@ -51,7 +51,7 @@ public class TrackedCommand extends RootCommand {
     public static int list(CommandContext<ServerCommandSource> context, int page) {
         EntityTracker tracker = EntityTracker.getWorldState(context.getSource().getWorld());
         int size = tracker.getTrackedEntities().size();
-        CommandUtil.reply(context, Text.literal(String.format("§7Tracked §f%s§7 entities with blacklisted items:", size)));
+        CommandUtil.reply(context, Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", size)));
         List<NbtCompound> trackedEntities = tracker.getTrackedEntities().values().stream().sorted(Comparator.comparingInt(x -> -x.getInt(TRACKED_COUNT))).toList();
 
         final int PAGE_SIZE = 10;
@@ -107,7 +107,6 @@ public class TrackedCommand extends RootCommand {
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Last page")))));
         }
         CommandUtil.reply(context, navigation);
-        CommandUtil.reply(context, Text.empty());
 
         return Command.SINGLE_SUCCESS;
     }
