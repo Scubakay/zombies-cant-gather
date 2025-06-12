@@ -44,7 +44,18 @@ If you added weird stuff and want to start over, use the reset commands:
 /zombiescantgather piglin reset
 ```
 
-### Manual configuration
+## Tracked entities
+
+Zombies Can't Gather keeps track of every time an entity holding a blacklisted item is loaded so you can use a command
+to see where all those persistent mobs are:
+
+```properties
+/zombiescantgather tracked list <optional:page>
+```
+The command displays a paginated list of entites sorted by the amount of times they were loaded, with a button to quickly
+teleport to the entity so you can take care of it. Provided you have the correct permissions of course.
+
+## Manual configuration
 
 The list of items a Zombie can't pick up is stored in a config file: `config/zombiescantgather/mod.properties`:
 
