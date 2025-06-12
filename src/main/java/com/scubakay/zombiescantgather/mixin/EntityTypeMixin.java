@@ -34,7 +34,7 @@ public class EntityTypeMixin {
             }
         } else if (entity instanceof PiglinEntity piglin) {
             ItemStack item = piglin.getHandItems().iterator().next();
-            if (world instanceof ServerWorld && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
+            if (world instanceof ServerWorld && MOD_CONFIG.piglinsCantGather.get().contains(item.getItem().toString())) {
                 EntityTracker state = EntityTracker.getServerState(world.getServer());
                 int count = state.trackEntity(entity.getUuid(), entity.getWorld().getDimensionEntry(), nbtCompound);
                 state.markDirty();
