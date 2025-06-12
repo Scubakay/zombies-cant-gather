@@ -30,7 +30,7 @@ import static com.scubakay.zombiescantgather.state.EntityTracker.TRACKED_COUNT;
 public class TrackedCommand extends RootCommand {
     public static void register(CommandDispatcher<ServerCommandSource> ignoredDispatcher, CommandRegistryAccess ignoredRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
         LiteralCommandNode<ServerCommandSource> tracked = CommandManager
-                .literal("tracked")
+                .literal("tracker")
                 .build();
         RootCommand.getRoot().addChild(tracked);
 
@@ -52,29 +52,38 @@ public class TrackedCommand extends RootCommand {
     }
 
     public static int list(CommandContext<ServerCommandSource> context, int page) {
-        EntityTracker tracker = EntityTracker.getWorldState(context);
-        int size = tracker.getTrackedEntities().size();
-        CommandUtil.reply(context, Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", size)));
-        List<NbtCompound> trackedEntities = tracker.getTrackedEntities().values().stream().sorted(Comparator.comparingInt(x -> -x.getInt(TRACKED_COUNT))).toList();
+        List<NbtCompound> tracker = EntityTracker
+                .getServerState(context.getSource().getServer())
+                .getTrackedEntities()
+                .values()
+                .stream()
+                .sorted(Comparator.comparingInt(x -> -x.getInt(TRACKED_COUNT)))
+                .toList();
 
         final int PAGE_SIZE = 10;
+        int size = tracker.size();
         int pages = size / PAGE_SIZE + 1;
         int startItem = Integer.min(pages - 1, page - 1) * PAGE_SIZE;
         int endItem = Integer.min(size, startItem + PAGE_SIZE);
 
+        CommandUtil.reply(context, Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", size)));
+
         for (int i = startItem; i < endItem; i++) {
-            NbtCompound entity = trackedEntities.get(i);
-            NbtCompound firstHandItem = (NbtCompound) entity.getList("HandItems", NbtElement.COMPOUND_TYPE).getFirst();
-            NbtList positionList = entity.getList("Pos", NbtElement.DOUBLE_TYPE);
-            Vec3d pos = new Vec3d(positionList.getDouble(0), positionList.getDouble(1), positionList.getDouble(2));
-            int loadedCount = entity.getInt(TRACKED_COUNT);
+            NbtCompound entity = tracker.get(i);
+
             String dimension = entity.getString(DIMENSION);
             final int dimensionColor = getDimensionColor(dimension);
             String tpCommand = String.format("/tp @s %s", entity.getUuid("UUID").toString());
-
             final Text tpButton = getTpButton(context, dimensionColor, tpCommand);
+
+            NbtList positionList = entity.getList("Pos", NbtElement.DOUBLE_TYPE);
+            Vec3d pos = new Vec3d(positionList.getDouble(0), positionList.getDouble(1), positionList.getDouble(2));
             final Text toolTip = getTrackerRowToolTip(entity, dimension, dimensionColor, pos);
+
+            int loadedCount = entity.getInt(TRACKED_COUNT);
+            NbtCompound firstHandItem = (NbtCompound) entity.getList("HandItems", NbtElement.COMPOUND_TYPE).getFirst();
             final Text trackerRow = getTrackerRow(toolTip, entity, loadedCount, firstHandItem);
+
             CommandUtil.reply(context, tpButton.copy().append(trackerRow));
         }
 
@@ -172,7 +181,7 @@ public class TrackedCommand extends RootCommand {
     }
 
     public static int reset(CommandContext<ServerCommandSource> context) {
-        EntityTracker.getWorldState(context).clear();
+        EntityTracker.getServerState(context.getSource().getServer()).clear();
         return Command.SINGLE_SUCCESS;
     }
 }

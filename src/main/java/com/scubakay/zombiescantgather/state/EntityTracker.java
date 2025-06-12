@@ -1,13 +1,12 @@
 package com.scubakay.zombiescantgather.state;
 
-import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateManager;
+import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 
 import java.util.HashMap;
@@ -74,14 +73,10 @@ public class EntityTracker extends PersistentState {
             null
     );
 
-    public static EntityTracker getWorldState(CommandContext<ServerCommandSource> context) {
-        return EntityTracker.getWorldState(context.getSource().getServer().getOverworld());
-    }
-
-    public static EntityTracker getWorldState(ServerWorld world) {
-        ServerWorld overworld = world.getServer().getOverworld();
-        PersistentStateManager manager = overworld.getPersistentStateManager();
-        EntityTracker state = manager.getOrCreate(type, MOD_ID);
+    public static EntityTracker getServerState(MinecraftServer server) {
+        ServerWorld serverWorld = server.getWorld(World.OVERWORLD);
+        assert serverWorld != null;
+        EntityTracker state = serverWorld.getPersistentStateManager().getOrCreate(type, MOD_ID);
         state.markDirty();
         return state;
     }
