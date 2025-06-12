@@ -26,17 +26,17 @@ public class EntityTypeMixin {
     private static void zombiesCantGather$checkForbiddenItems(NbtCompound nbtCompound, World world, SpawnReason spawnReason, Function<Entity, Entity> function, Entity entity, CallbackInfoReturnable<Entity> cir) {
         if (entity instanceof ZombieEntity zombie) {
             ItemStack item = zombie.getHandItems().iterator().next();
-            if (!world.isClient() && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
-                EntityTracker state = EntityTracker.getWorldState((ServerWorld) world);
-                int count = state.trackEntity(entity.getUuid(), nbtCompound);
+            if (world instanceof ServerWorld serverWorld && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
+                EntityTracker state = EntityTracker.getWorldState(serverWorld);
+                int count = state.trackEntity(entity.getUuid(), entity.getWorld().getDimensionEntry(), nbtCompound);
                 state.markDirty();
                 LOGGER.info("Found zombie {} time(s) with blacklisted item \"{}\" at position {}", count, item.getItem(), zombie.getPos());
             }
         } else if (entity instanceof PiglinEntity piglin) {
             ItemStack item = piglin.getHandItems().iterator().next();
-            if (!world.isClient() && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
-                EntityTracker state = EntityTracker.getWorldState((ServerWorld) world);
-                int count = state.trackEntity(entity.getUuid(), nbtCompound);
+            if (world instanceof ServerWorld serverWorld && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
+                EntityTracker state = EntityTracker.getWorldState(serverWorld);
+                int count = state.trackEntity(entity.getUuid(), entity.getWorld().getDimensionEntry(), nbtCompound);
                 state.markDirty();
                 LOGGER.info("Found piglin {} time(s) with blacklisted item \"{}\" at position {}", count, item.getItem(), piglin.getPos());
             }
