@@ -34,7 +34,7 @@ public class CommandUtil {
     public static LiteralCommandNode<ServerCommandSource> getAddNode(CommandRegistryAccess ignoredCommandRegistryAccess, final Command<ServerCommandSource> command) {
         LiteralCommandNode<ServerCommandSource> addNode = CommandManager
                 .literal("add")
-                .requires(ctx -> PermissionManager.hasPermission(ctx, ADD_PERMISSION))
+                .requires(ctx -> PermissionManager.hasPermission(ctx, BLACKLIST_ADD_PERMISSION))
                 .build();
         ArgumentCommandNode<ServerCommandSource, ItemStackArgument> itemNode = CommandManager
                 .argument("item", ItemStackArgumentType.itemStack(ignoredCommandRegistryAccess))
@@ -47,7 +47,7 @@ public class CommandUtil {
     public static LiteralCommandNode<ServerCommandSource> getRemoveNode(CommandRegistryAccess ignoredCommandRegistryAccess, SuggestionProvider<ServerCommandSource> suggestions, final Command<ServerCommandSource> command) {
         LiteralCommandNode<ServerCommandSource> removeNode = CommandManager
                 .literal("remove")
-                .requires(ctx -> hasPermission(ctx, REMOVE_PERMISSION))
+                .requires(ctx -> hasPermission(ctx, BLACKLIST_REMOVE_PERMISSION))
                 .build();
         ArgumentCommandNode<ServerCommandSource, ItemStackArgument> itemNode = CommandManager
                 .argument("listedItem", ItemStackArgumentType.itemStack(ignoredCommandRegistryAccess))
@@ -61,7 +61,7 @@ public class CommandUtil {
     public static LiteralCommandNode<ServerCommandSource> getListNode(final Command<ServerCommandSource> command) {
         return CommandManager
                 .literal("list")
-                .requires(ctx -> hasPermission(ctx, LIST_PERMISSION))
+                .requires(ctx -> hasPermission(ctx, BLACKLIST_LIST_PERMISSION))
                 .executes(command)
                 .build();
     }
@@ -69,7 +69,7 @@ public class CommandUtil {
     public static LiteralCommandNode<ServerCommandSource> getResetNode(final Command<ServerCommandSource> command) {
         return CommandManager
                 .literal("reset")
-                .requires(ctx -> hasPermission(ctx, RESET_PERMISSION))
+                .requires(ctx -> hasPermission(ctx, BLACKLIST_RESET_PERMISSION))
                 .executes(command)
                 .build();
     }
