@@ -25,11 +25,13 @@ public class EntityTypeMixin {
     @Inject(method = "method_17843", at = @At("RETURN"))
     private static void zombiesCantGather$checkForbiddenItems(NbtCompound nbtCompound, World world, SpawnReason spawnReason, Function<Entity, Entity> function, Entity entity, CallbackInfoReturnable<Entity> cir) {
         if (MOD_CONFIG.enableTracker.get() && world instanceof ServerWorld && entity instanceof MobEntity mobEntity) {
-            ItemStack item = mobEntity.getHandItems().iterator().next();
-            if (entity instanceof ZombieEntity zombie && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
-                EntityTracker.getServerState(world.getServer()).trackEntity(zombie);
-            } else if (entity instanceof PiglinEntity piglin && MOD_CONFIG.piglinsCantGather.get().contains(item.getItem().toString())) {
-                EntityTracker.getServerState(world.getServer()).trackEntity(piglin);
+            if (mobEntity.getCustomName() != null || MOD_CONFIG.trackCustomNamedMobs.get()) {
+                ItemStack item = mobEntity.getHandItems().iterator().next();
+                if (entity instanceof ZombieEntity zombie && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
+                    EntityTracker.getServerState(world.getServer()).trackEntity(zombie);
+                } else if (entity instanceof PiglinEntity piglin && MOD_CONFIG.piglinsCantGather.get().contains(item.getItem().toString())) {
+                    EntityTracker.getServerState(world.getServer()).trackEntity(piglin);
+                }
             }
         }
     }

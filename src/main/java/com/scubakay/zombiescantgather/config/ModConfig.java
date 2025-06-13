@@ -12,10 +12,12 @@ public class ModConfig {
     private final StringList DEFAULT_ZOMBIE_ITEMS = StringList.of("minecraft:glow_ink_sac");
     private final StringList DEFAULT_PIGLIN_ITEMS = StringList.of();
     private final boolean DEFAULT_ENABLE_TRACKER = false;
+    private final boolean DEFAULT_TRACK_CUSTOM_NAMED_MOBS = false;
 
     public ConfigEntry<StringList> zombiesCantGather;
     public ConfigEntry<StringList> piglinsCantGather;
     public ConfigEntry<Boolean> enableTracker;
+    public ConfigEntry<Boolean> trackCustomNamedMobs;
 
     public ModConfig(ConfigBuilder builder) {
         zombiesCantGather = builder
@@ -27,6 +29,9 @@ public class ModConfig {
         enableTracker = builder
                 .entry("enable_tracker", DEFAULT_ENABLE_TRACKER)
                 .comment("Enable/disable tracker");
+        trackCustomNamedMobs = builder
+                .entry("track_custom_named_mobs", DEFAULT_TRACK_CUSTOM_NAMED_MOBS)
+                .comment("Enable/disable tracking of mobs with a custom name");
     }
 
     public void addZombieItem(String item) {
