@@ -77,7 +77,7 @@ public class TrackerCommand extends RootCommand {
 
         final int PAGE_SIZE = 10;
         int pages = tracker.size() / PAGE_SIZE;
-        int startItem = Integer.min(pages, current_page-1) * PAGE_SIZE;
+        int startItem = Integer.min(pages, current_page - 1) * PAGE_SIZE;
         int endItem = Integer.min(tracker.size(), startItem + PAGE_SIZE);
 
         CommandUtil.reply(context, Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", tracker.size())));
@@ -204,7 +204,7 @@ public class TrackerCommand extends RootCommand {
                     .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(next_page)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Next page")))));
         }
-        if (current_page+1 < last_page) {
+        if (current_page + 1 < last_page) {
             navigation = navigation.copy().append(Text.literal(" >>").styled(style -> style.withColor(Colors.GREEN)
                     .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(last_page)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Last page")))));

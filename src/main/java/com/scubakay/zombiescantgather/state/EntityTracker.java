@@ -11,8 +11,7 @@ import net.minecraft.world.World;
 import java.util.HashMap;
 import java.util.UUID;
 
-import static com.scubakay.zombiescantgather.ZombiesCantGather.LOGGER;
-import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_ID;
+import static com.scubakay.zombiescantgather.ZombiesCantGather.*;
 
 public class EntityTracker extends PersistentState {
     public static final String TRACKER_KEY = "TrackerEntities";
@@ -43,7 +42,9 @@ public class EntityTracker extends PersistentState {
 
         this.trackedEntities.put(trackedEntity.uuid, trackedEntity);
         this.markDirty();
-        LOGGER.info("Loaded {} {} time(s) holding blacklisted item \"{}\" at {}", trackedEntity.name, trackedEntity.count, trackedEntity.item, trackedEntity.pos.toShortString());
+        if (MOD_CONFIG.showTrackerLogs.get()){
+            LOGGER.info("Loaded {} {} time(s) holding blacklisted item \"{}\" at {}", trackedEntity.name, trackedEntity.count, trackedEntity.item, trackedEntity.pos.toShortString());
+        }
     }
 
     @Override
