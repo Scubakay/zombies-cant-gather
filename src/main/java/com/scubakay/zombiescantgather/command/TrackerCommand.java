@@ -10,14 +10,22 @@ import com.scubakay.zombiescantgather.state.TrackedEntity;
 import com.scubakay.zombiescantgather.util.CommandUtil;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.UuidArgumentType;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.TeleportTarget;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -26,26 +34,19 @@ import static com.scubakay.zombiescantgather.command.PermissionManager.*;
 
 public class TrackerCommand extends RootCommand {
     public static String TRACKER_COMMAND = "tracker";
-    public static String TRACKER_LIST_COMMAND = "list";
     public static String TRACKER_RESET_COMMAND = "reset";
-    public static String TRACKER_TELEPORT_COMMAND = "tp";
+    public static String TRACKER_TELEPORT_COMMAND = "teleport";
 
     public static void register(CommandDispatcher<ServerCommandSource> ignoredDispatcher, CommandRegistryAccess ignoredRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
         LiteralCommandNode<ServerCommandSource> tracker = CommandManager
                 .literal(TRACKER_COMMAND)
                 .requires(ctx -> hasPermission(ctx, TRACKER_PERMISSION))
-                .build();
-        RootCommand.getRoot().addChild(tracker);
-
-        LiteralCommandNode<ServerCommandSource> list = CommandManager
-                .literal(TRACKER_LIST_COMMAND)
-                .requires(ctx -> hasPermission(ctx, TRACKER_LIST_PERMISSION))
                 .executes(ctx -> list(ctx, 1))
                 .then(CommandManager
                         .argument("page", IntegerArgumentType.integer(1))
                         .executes(ctx -> list(ctx, IntegerArgumentType.getInteger(ctx, "page"))))
                 .build();
-        tracker.addChild(list);
+        RootCommand.getRoot().addChild(tracker);
 
         LiteralCommandNode<ServerCommandSource> reset = CommandManager
                 .literal(TRACKER_RESET_COMMAND)
@@ -100,9 +101,17 @@ public class TrackerCommand extends RootCommand {
 
     public static int teleport(CommandContext<ServerCommandSource> context, UUID uuid) {
         if (context.getSource().isExecutedByPlayer()) {
+            // Get entity pos and world
             HashMap<UUID, TrackedEntity> tracker = EntityTracker.getServerState(context.getSource().getServer()).getTrackedEntities();
-            //TeleportTarget target = new TeleportTarget()
-            //Objects.requireNonNull(context.getSource().getPlayer()).teleportTo(target);
+            TrackedEntity entity = tracker.get(uuid);
+            RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(entity.dimension));
+            ServerWorld world = context.getSource().getServer().getWorld(key);
+
+            // Get player and teleport
+            ServerPlayerEntity player = context.getSource().getPlayer();
+            assert player != null;
+            TeleportTarget target = new TeleportTarget(world, entity.pos.toBottomCenterPos(), Vec3d.ZERO, player.getYaw(), player.getPitch(), TeleportTarget.NO_OP);
+            player.teleportTo(target);
         } else {
             CommandUtil.reply(context, Text.literal("Only players can run the teleport command"));
         }
@@ -204,11 +213,11 @@ public class TrackerCommand extends RootCommand {
     }
 
     private static @NotNull String getPageCommand(int page) {
-        return String.format("/%s %s %s %s", ROOT_COMMAND, TRACKER_COMMAND, TRACKER_LIST_COMMAND, page);
+        return String.format("/%s %s %s", ROOT_COMMAND, TRACKER_COMMAND, page);
     }
 
     private static @NotNull String getTpCommand(TrackedEntity entity) {
-        return String.format("/execute in %s run tp @s %s", entity.dimension, entity.pos.toShortString());
+        return String.format("/%s %s %s %s", ROOT_COMMAND, TRACKER_COMMAND, TRACKER_TELEPORT_COMMAND, entity.uuid);
     }
 
     private static @NotNull String getTpButtonTitle(TrackedEntity entity) {
