@@ -2,6 +2,7 @@ package com.scubakay.zombiescantgather.mixin;
 
 import com.scubakay.zombiescantgather.state.EntityTracker;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,11 +23,14 @@ public abstract class EntityMixin {
     @Shadow
     public abstract UUID getUuid();
 
+    @Shadow
+    public abstract EntityType<?> getType();
+
     @Inject(method = "setRemoved", at = @At(value = "HEAD", target = "Lnet/minecraft/entity/Entity;stopRiding()V"))
     public void zombiesCantGather$injectDiscard(Entity.RemovalReason reason, CallbackInfo ci) {
         if (MOD_CONFIG.enableTracker.get() && !this.getWorld().isClient()) {
             // Only remove from tracker if entity is actually killed or discarded, not just unloaded
-            if ((reason == Entity.RemovalReason.KILLED || reason == Entity.RemovalReason.DISCARDED)) {
+            if ((this.getType() == EntityType.ZOMBIE || this.getType() == EntityType.PIGLIN) && (reason == Entity.RemovalReason.KILLED || reason == Entity.RemovalReason.DISCARDED)) {
                 EntityTracker tracker = EntityTracker.getServerState(Objects.requireNonNull(this.getWorld().getServer()));
                 tracker.remove(this.getUuid());
             }
