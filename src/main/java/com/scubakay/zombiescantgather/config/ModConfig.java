@@ -7,21 +7,26 @@ import de.maxhenkel.configbuilder.entry.ConfigEntry;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class ModConfig {
     private final StringList DEFAULT_ZOMBIE_ITEMS = StringList.of("minecraft:glow_ink_sac");
     private final StringList DEFAULT_PIGLIN_ITEMS = StringList.of();
+    private final boolean DEFAULT_ENABLE_TRACKER = false;
 
     public ConfigEntry<StringList> zombiesCantGather;
     public ConfigEntry<StringList> piglinsCantGather;
+    public ConfigEntry<Boolean> enableTracker;
 
     public ModConfig(ConfigBuilder builder) {
-
         zombiesCantGather = builder
                 .entry("zombiescantgather_items", DEFAULT_ZOMBIE_ITEMS)
                 .comment("List of items that zombies should not pick up");
         piglinsCantGather = builder
                 .entry("piglinscantgather_items", DEFAULT_PIGLIN_ITEMS)
                 .comment("List of items that piglins should not pick up");
+        enableTracker = builder
+                .entry("enable_tracker", DEFAULT_ENABLE_TRACKER)
+                .comment("Enable/disable tracker");
     }
 
     public void addZombieItem(String item) {

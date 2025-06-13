@@ -31,7 +31,9 @@ public class ZombiesCantGather implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(RootCommand::register);
         CommandRegistrationCallback.EVENT.register(ZombiesCantGatherCommand::register);
         CommandRegistrationCallback.EVENT.register(PiglinsCantGatherCommand::register);
-        CommandRegistrationCallback.EVENT.register(TrackerCommand::register);
+        if (MOD_CONFIG.enableTracker.get()) {
+            CommandRegistrationCallback.EVENT.register(TrackerCommand::register);
+        }
     }
 
     public Path getConfigDirectory() {
