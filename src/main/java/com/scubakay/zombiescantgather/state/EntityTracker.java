@@ -1,25 +1,23 @@
 package com.scubakay.zombiescantgather.state;
 
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 
 import java.util.HashMap;
 import java.util.UUID;
 
+import static com.scubakay.zombiescantgather.ZombiesCantGather.LOGGER;
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_ID;
 
 public class EntityTracker extends PersistentState {
-    public static final String TRACKED_ENTITIES = "TrackedEntities";
-    public static final String TRACKED_COUNT = "TrackedCount";
-    public static final String DIMENSION = "Dimension";
+    public static final String TRACKER_KEY = "TrackerEntities";
 
-    private final HashMap<UUID, NbtCompound> trackedEntities = new HashMap<>();
+    private final HashMap<UUID, TrackedEntity> trackedEntities = new HashMap<>();
 
     public void remove(UUID uuid) {
         this.trackedEntities.remove(uuid);
@@ -31,38 +29,37 @@ public class EntityTracker extends PersistentState {
         this.markDirty();
     }
 
-    public HashMap<UUID, NbtCompound> getTrackedEntities() {
+    public HashMap<UUID, TrackedEntity> getTrackedEntities() {
         return this.trackedEntities;
     }
 
-    public int trackEntity(UUID uuid, RegistryEntry<DimensionType> dimension, NbtCompound entity) {
-        NbtCompound saveEntity = entity.copy();
-        NbtCompound trackedEntity = this.trackedEntities.get(uuid);
-        int count = 0;
-        if (trackedEntity != null) {
-            count = trackedEntity.getInt(TRACKED_COUNT);
+    public void trackEntity(MobEntity entity) {
+        TrackedEntity trackedEntity = new TrackedEntity(entity);
+
+        final TrackedEntity existingEntity = this.trackedEntities.get(trackedEntity.uuid);
+        if (existingEntity != null) {
+            trackedEntity.count += existingEntity.count;
         }
-        saveEntity.putInt(TRACKED_COUNT, ++count);
-        saveEntity.putString(DIMENSION, dimension.getIdAsString());
-        this.trackedEntities.put(uuid, saveEntity);
+
+        this.trackedEntities.put(trackedEntity.uuid, trackedEntity);
         this.markDirty();
-        return count;
+        LOGGER.info("Loaded {} {} time(s) holding blacklisted item \"{}\" at {}", trackedEntity.name, trackedEntity.count, trackedEntity.item, trackedEntity.pos.toShortString());
     }
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
         NbtCompound entitiesNbt = new NbtCompound();
-        this.trackedEntities.forEach((uuid, entity) -> entitiesNbt.put(uuid.toString(), entity));
-        nbt.put(TRACKED_ENTITIES, entitiesNbt);
+        this.trackedEntities.forEach((uuid, entity) -> entitiesNbt.put(uuid.toString(), entity.toNbt()));
+        nbt.put(TRACKER_KEY, entitiesNbt);
         return nbt;
     }
 
     public static EntityTracker createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         EntityTracker state = new EntityTracker();
-        NbtCompound entitiesNbt = tag.getCompound(TRACKED_ENTITIES);
+        NbtCompound entitiesNbt = tag.getCompound(TRACKER_KEY);
         entitiesNbt.getKeys().forEach(key -> {
             NbtCompound entityNbt = entitiesNbt.getCompound(key);
-            state.trackedEntities.put(UUID.fromString(key), entityNbt);
+            state.trackedEntities.put(UUID.fromString(key), new TrackedEntity(entityNbt));
         });
         return state;
     }

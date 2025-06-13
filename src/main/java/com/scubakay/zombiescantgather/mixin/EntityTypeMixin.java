@@ -4,6 +4,7 @@ import com.scubakay.zombiescantgather.state.EntityTracker;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.PiglinEntity;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.item.ItemStack;
@@ -17,28 +18,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.function.Function;
 
-import static com.scubakay.zombiescantgather.ZombiesCantGather.LOGGER;
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 
 @Mixin(EntityType.class)
 public class EntityTypeMixin {
     @Inject(method = "method_17843", at = @At("RETURN"))
     private static void zombiesCantGather$checkForbiddenItems(NbtCompound nbtCompound, World world, SpawnReason spawnReason, Function<Entity, Entity> function, Entity entity, CallbackInfoReturnable<Entity> cir) {
-        if (entity instanceof ZombieEntity zombie) {
-            ItemStack item = zombie.getHandItems().iterator().next();
-            if (world instanceof ServerWorld && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
-                EntityTracker state = EntityTracker.getServerState(world.getServer());
-                int count = state.trackEntity(entity.getUuid(), entity.getWorld().getDimensionEntry(), nbtCompound);
-                state.markDirty();
-                LOGGER.info("Found zombie {} time(s) with blacklisted item \"{}\" at position {}", count, item.getItem(), zombie.getBlockPos());
-            }
-        } else if (entity instanceof PiglinEntity piglin) {
-            ItemStack item = piglin.getHandItems().iterator().next();
-            if (world instanceof ServerWorld && MOD_CONFIG.piglinsCantGather.get().contains(item.getItem().toString())) {
-                EntityTracker state = EntityTracker.getServerState(world.getServer());
-                int count = state.trackEntity(entity.getUuid(), entity.getWorld().getDimensionEntry(), nbtCompound);
-                state.markDirty();
-                LOGGER.info("Found piglin {} time(s) with blacklisted item \"{}\" at position {}", count, item.getItem(), piglin.getBlockPos());
+        if (world instanceof ServerWorld && entity instanceof MobEntity mobEntity) {
+            ItemStack item = mobEntity.getHandItems().iterator().next();
+            if (entity instanceof ZombieEntity zombie && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
+                EntityTracker.getServerState(world.getServer()).trackEntity(zombie);
+            } else if (entity instanceof PiglinEntity piglin && MOD_CONFIG.piglinsCantGather.get().contains(item.getItem().toString())) {
+                EntityTracker.getServerState(world.getServer()).trackEntity(piglin);
             }
         }
     }

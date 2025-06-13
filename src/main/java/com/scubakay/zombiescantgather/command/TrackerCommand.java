@@ -6,11 +6,10 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.scubakay.zombiescantgather.state.EntityTracker;
+import com.scubakay.zombiescantgather.state.TrackedEntity;
 import com.scubakay.zombiescantgather.util.CommandUtil;
 import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.ClickEvent;
@@ -19,28 +18,24 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
-import static com.scubakay.zombiescantgather.state.EntityTracker.DIMENSION;
-import static com.scubakay.zombiescantgather.state.EntityTracker.TRACKED_COUNT;
 
-public class TrackedCommand extends RootCommand {
+public class TrackerCommand extends RootCommand {
     public static String TRACKER_COMMAND = "tracker";
     public static String TRACKER_LIST_COMMAND = "list";
     public static String TRACKER_RESET_COMMAND = "reset";
+    public static String TRACKER_TELEPORT_COMMAND = "tp";
 
     public static void register(CommandDispatcher<ServerCommandSource> ignoredDispatcher, CommandRegistryAccess ignoredRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
-        LiteralCommandNode<ServerCommandSource> tracked = CommandManager
+        LiteralCommandNode<ServerCommandSource> tracker = CommandManager
                 .literal(TRACKER_COMMAND)
                 .requires(ctx -> hasPermission(ctx, TRACKER_PERMISSION))
                 .build();
-        RootCommand.getRoot().addChild(tracked);
+        RootCommand.getRoot().addChild(tracker);
 
         LiteralCommandNode<ServerCommandSource> list = CommandManager
                 .literal(TRACKER_LIST_COMMAND)
@@ -50,23 +45,33 @@ public class TrackedCommand extends RootCommand {
                         .argument("page", IntegerArgumentType.integer(1))
                         .executes(ctx -> list(ctx, IntegerArgumentType.getInteger(ctx, "page"))))
                 .build();
-        tracked.addChild(list);
+        tracker.addChild(list);
 
         LiteralCommandNode<ServerCommandSource> reset = CommandManager
                 .literal(TRACKER_RESET_COMMAND)
                 .requires(ctx -> hasPermission(ctx, TRACKER_RESET_PERMISSION))
-                .executes(TrackedCommand::reset)
+                .executes(TrackerCommand::reset)
                 .build();
-        tracked.addChild(reset);
+        tracker.addChild(reset);
+
+        LiteralCommandNode<ServerCommandSource> teleport = CommandManager
+                .literal(TRACKER_TELEPORT_COMMAND)
+                .requires(ctx -> hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
+                .then(CommandManager
+                        .argument("uuid", UuidArgumentType.uuid())
+                        .executes(ctx -> teleport(ctx, UuidArgumentType.getUuid(ctx, "uuid"))))
+                .build();
+        tracker.addChild(teleport);
+
     }
 
     public static int list(CommandContext<ServerCommandSource> context, int current_page) {
-        List<NbtCompound> tracker = EntityTracker
+        List<TrackedEntity> tracker = EntityTracker
                 .getServerState(context.getSource().getServer())
                 .getTrackedEntities()
                 .values()
                 .stream()
-                .sorted(Comparator.comparingInt(x -> -x.getInt(TRACKED_COUNT)))
+                .sorted(Comparator.comparingInt(x -> -x.count))
                 .toList();
 
         final int PAGE_SIZE = 10;
@@ -77,7 +82,7 @@ public class TrackedCommand extends RootCommand {
         CommandUtil.reply(context, Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", tracker.size())));
 
         for (int i = startItem; i < endItem; i++) {
-            NbtCompound entity = tracker.get(i);
+            TrackedEntity entity = tracker.get(i);
             final Text tpButton = getTpButton(context, entity);
             final Text trackerRow = getTrackerRow(entity);
             CommandUtil.reply(context, tpButton.copy().append(trackerRow));
@@ -93,21 +98,32 @@ public class TrackedCommand extends RootCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static Text getTpButton(CommandContext<ServerCommandSource> context, NbtCompound entity) {
+    public static int teleport(CommandContext<ServerCommandSource> context, UUID uuid) {
+        if (context.getSource().isExecutedByPlayer()) {
+            HashMap<UUID, TrackedEntity> tracker = EntityTracker.getServerState(context.getSource().getServer()).getTrackedEntities();
+            //TeleportTarget target = new TeleportTarget()
+            //Objects.requireNonNull(context.getSource().getPlayer()).teleportTo(target);
+        } else {
+            CommandUtil.reply(context, Text.literal("Only players can run the teleport command"));
+        }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static Text getTpButton(CommandContext<ServerCommandSource> context, TrackedEntity entity) {
         if (!hasPermission(context.getSource(), PermissionManager.TRACKER_TELEPORT_PERMISSION)) {
             return Text.empty();
         }
         return Text.literal("[TP] ")
                 .styled(style -> style
-                        .withColor(getDimensionColor(entity))
+                        .withColor(entity.getDimensionColor())
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getTpCommand(entity)))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTpButtonToolTIp(entity))));
     }
 
-    private static Text getTpButtonToolTIp(NbtCompound entity) {
+    private static Text getTpButtonToolTIp(TrackedEntity entity) {
         return Text.literal(getTpButtonTitle(entity))
                 .styled(style -> style
-                        .withColor(getDimensionColor(entity))
+                        .withColor(entity.getDimensionColor())
                         .withFormatting(Formatting.BOLD))
                 .append(Text.literal("Runs: ")
                         .styled(style -> style
@@ -120,40 +136,40 @@ public class TrackedCommand extends RootCommand {
                                 .withBold(false)));
     }
 
-    private static Text getTrackerRow(NbtCompound entity) {
-        return Text.literal(String.format("(%sx) ", getLoadedCountString(entity)))
+    private static Text getTrackerRow(TrackedEntity entity) {
+        return Text.literal(String.format("(%dx) ", entity.count))
                 .styled(style -> style
                         .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, getTpCommand(entity)))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTrackerRowToolTip(entity)))
                         .withFormatting(Formatting.GRAY))
-                .append(Text.literal(getEntityName(entity)) // <name>
+                .append(Text.literal(entity.name) // <name>
                         .styled(style -> style
                                 .withFormatting(Formatting.WHITE)))
                 .append(Text.literal(" is holding ")
                         .styled(style -> style
                                 .withFormatting(Formatting.GRAY)))
-                .append(Text.literal(getFirstHandItemString(entity))
+                .append(Text.literal(entity.item)
                         .styled(style -> style
                                 .withFormatting(Formatting.WHITE)));
     }
 
-    private static Text getTrackerRowToolTip(NbtCompound entity) {
-        return Text.literal(getEntityName(entity))
+    private static Text getTrackerRowToolTip(TrackedEntity entity) {
+        return Text.literal(entity.name)
                 .styled(style -> style
                         .withFormatting(Formatting.BOLD)
-                        .withColor(getDimensionColor(entity)))
+                        .withColor(entity.getDimensionColor()))
                 .append(Text.literal("\nDimension: ")
                         .styled((Style style) -> style
                                 .withFormatting(Formatting.GRAY)
                                 .withBold(false)))
-                .append(Text.literal(getDimensionName(entity))
+                .append(Text.literal(entity.dimension)
                         .styled(style -> style
                                 .withFormatting(Formatting.WHITE)))
                 .append(Text.literal("\nLocation: ")
                         .styled(style -> style
                                 .withFormatting(Formatting.GRAY)
                                 .withBold(false)))
-                .append(Text.literal(getBlockPos(entity).toShortString())
+                .append(Text.literal(entity.pos.toShortString())
                         .styled(style -> style
                                 .withFormatting(Formatting.WHITE)
                                 .withBold(false)));
@@ -191,61 +207,11 @@ public class TrackedCommand extends RootCommand {
         return String.format("/%s %s %s %s", ROOT_COMMAND, TRACKER_COMMAND, TRACKER_LIST_COMMAND, page);
     }
 
-    private static @NotNull String getTpCommand(NbtCompound entity) {
-        final String dimension = getDimensionAsString(entity);
-        final BlockPos pos = getBlockPos(entity);
-        return String.format("/execute in %s run tp @s %d %d %d", dimension, pos.getX(), pos.getY(), pos.getZ());
+    private static @NotNull String getTpCommand(TrackedEntity entity) {
+        return String.format("/execute in %s run tp @s %s", entity.dimension, entity.pos.toShortString());
     }
 
-    private static String getDimensionAsString(NbtCompound entity) {
-        return entity.getString(DIMENSION);
-    }
-
-    private static @NotNull BlockPos getBlockPos(NbtCompound entity) {
-        NbtList positionList = entity.getList("Pos", NbtElement.DOUBLE_TYPE);
-        return new BlockPos((int) positionList.getDouble(0), (int) positionList.getDouble(1), (int) positionList.getDouble(2));
-    }
-
-    private static int getDimensionColor(NbtCompound entity) {
-        final String dimension = getDimensionAsString(entity);
-
-        int dimensionColor = Colors.WHITE;
-        if (dimension.equals(DimensionTypes.OVERWORLD_ID.toString())) {
-            dimensionColor = Colors.GREEN;
-        } else if (dimension.equals(DimensionTypes.THE_NETHER_ID.toString())) {
-            dimensionColor = Colors.RED;
-        } else if (dimension.equals(DimensionTypes.THE_END_ID.toString())) {
-            dimensionColor = Colors.YELLOW;
-        }
-        return dimensionColor;
-    }
-
-    private static String getFirstHandItemString(NbtCompound entity) {
-        return ((NbtCompound) entity.getList("HandItems", NbtElement.COMPOUND_TYPE).getFirst()).getString("id");
-    }
-
-    private static @NotNull String getLoadedCountString(NbtCompound entity) {
-        return String.valueOf(entity.getInt(TRACKED_COUNT));
-    }
-
-    private static @NotNull String getTpButtonTitle(NbtCompound entity) {
-        return String.format("Teleport to %s in the %s\n", getEntityName(entity), getDimensionName(entity));
-    }
-
-    private static String getDimensionName(NbtCompound entity) {
-        final String dimension = getDimensionAsString(entity);
-        if (dimension.equals(DimensionTypes.OVERWORLD_ID.toString())) {
-            return "Overworld";
-        } else if (dimension.equals(DimensionTypes.THE_NETHER_ID.toString())) {
-            return "Nether";
-        } else if (dimension.equals(DimensionTypes.THE_END_ID.toString())) {
-            return "End";
-        } else {
-            return dimension;
-        }
-    }
-
-    private static String getEntityName(NbtCompound entity) {
-        return entity.getString("CustomName").replace("\"", "");
+    private static @NotNull String getTpButtonTitle(TrackedEntity entity) {
+        return String.format("Teleport to %s in the %s\n", entity.name, entity.getDimensionName());
     }
 }
