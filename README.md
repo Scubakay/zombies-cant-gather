@@ -14,6 +14,28 @@ Now with support for Piglins!
 
 > By default, the mod only prevents Zombies from gathering `minecraft:glow_ink_sac`, just like vanilla Minecraft.
 
+## Tracker
+
+The tracker will log any zombies or piglins holding blacklisted items. When turned on, running the command 
+`/zombiescantgather tracker` will show information about those mobs, like the item they are holding and
+the amount of times the mob has been loaded:
+
+<img src="docs/tracker_command.png" alt="Tracker Command Example" style="max-width: 400px; width: 100%;" />
+
+When the player has the `zombiescantgather.tracker.teleport` command, they will see a clickable button to 
+teleport to the mob too. The teleport also works for mobs in unloaded chunks.
+
+Running `/zombiescantgather tracker reset` will clear the list, so you can start fresh.
+
+### Enabling the tracker
+
+To turn on the tracker, set enable_tracker in the config to true:
+
+```properties
+# Enable/disable tracker
+enable_tracker=true
+```
+
 ## Configuring the blacklists
 
 The `/zombiescantgather` command has options to add/remove/list items that a Zombie can't pick up. The
@@ -21,8 +43,8 @@ command will give you suggestions for the items you want to add to the list.
 
 The `/zombiescantgather` command has a list for both zombies and piglins:
 ```properties
-/zombiescantgather zombie list
-/zombiescantgather piglin list
+/zombiescantgather zombie
+/zombiescantgather piglin
 ```
 
 Zombies and piglins can not pick up any items on their list. To add items to the list you can use the commands:
