@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.function.Function;
 //? >= 1.21.2 {
 import net.minecraft.entity.SpawnReason;
-//? }
+//?}
 
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 
@@ -29,9 +29,9 @@ public class EntityTypeMixin {
             if (mobEntity.getCustomName() == null || MOD_CONFIG.trackCustomNamedMobs.get()) {
                 //? >= 1.21.5 {
                 ItemStack item = mobEntity.getMainHandStack();
-                //? } else {
+                //?} else {
                 /*ItemStack item = mobEntity.getHandItems().iterator().next();
-                *///? }
+                *///?}
                 if (entity instanceof ZombieEntity zombie && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
                     EntityTracker.getServerState(world.getServer()).track(zombie);
                 } else if (entity instanceof PiglinEntity piglin && MOD_CONFIG.piglinsCantGather.get().contains(item.getItem().toString())) {

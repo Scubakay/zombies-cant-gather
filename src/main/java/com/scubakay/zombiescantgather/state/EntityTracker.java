@@ -1,16 +1,23 @@
 package com.scubakay.zombiescantgather.state;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.scubakay.zombiescantgather.ZombiesCantGather;
 import com.scubakay.zombiescantgather.command.PermissionManager;
 import com.scubakay.zombiescantgather.command.TrackerCommand;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Uuids;
 import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateType;
 import net.minecraft.world.World;
+
+//? >=1.21.5 {
+import net.minecraft.world.PersistentStateType;
+import net.minecraft.util.Uuids;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+//?} else {
+/*import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
+*///? }
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,10 +28,6 @@ import static com.scubakay.zombiescantgather.ZombiesCantGather.*;
 import static com.scubakay.zombiescantgather.command.PermissionManager.hasPermission;
 
 public class EntityTracker extends PersistentState {
-    public static final Codec<EntityTracker> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.unboundedMap(Uuids.CODEC, TrackedEntity.CODEC).fieldOf("tracker_entities").forGetter(EntityTracker::get)
-    ).apply(instance, EntityTracker::new));
-
     private final Map<UUID, TrackedEntity> trackedEntities;
 
     public EntityTracker() {
@@ -33,6 +36,14 @@ public class EntityTracker extends PersistentState {
 
     public EntityTracker(Map<UUID, TrackedEntity> trackedEntities) {
         this.trackedEntities = trackedEntities;
+    }
+
+    public static EntityTracker getServerState(MinecraftServer server) {
+        ServerWorld serverWorld = server.getWorld(World.OVERWORLD);
+        assert serverWorld != null;
+        EntityTracker state = getState(serverWorld);
+        state.markDirty();
+        return state;
     }
 
     public Map<UUID, TrackedEntity> get() {
@@ -73,19 +84,45 @@ public class EntityTracker extends PersistentState {
         }
     }
 
-    static String getSaveKey(String namespace) {
-        return "zombies_cant_gather_" + namespace;
-    }
+    //? >=1.21.5 {
+    public static final Codec<EntityTracker> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.unboundedMap(Uuids.CODEC, TrackedEntity.CODEC).fieldOf(TrackedEntity.TrackerKeys.HASH_MAP).forGetter(EntityTracker::get)
+    ).apply(instance, EntityTracker::new));
 
     public static PersistentStateType<EntityTracker> createStateType(String id) {
-        return new PersistentStateType<>(EntityTracker.getSaveKey(id), EntityTracker::new, CODEC, null);
+        return new PersistentStateType<>(ZombiesCantGather.getSaveKey(id), EntityTracker::new, CODEC, null);
     }
 
-    public static EntityTracker getServerState(MinecraftServer server) {
-        ServerWorld serverWorld = server.getWorld(World.OVERWORLD);
-        assert serverWorld != null;
-        EntityTracker state = serverWorld.getPersistentStateManager().getOrCreate(createStateType("entity_tracker"));
-        state.markDirty();
+    private static EntityTracker getState(ServerWorld serverWorld) {
+        return serverWorld.getPersistentStateManager().getOrCreate(createStateType("entity_tracker"));
+    }
+    //?} else {
+    /*@Override
+    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
+        NbtCompound entitiesNbt = new NbtCompound();
+        this.trackedEntities.forEach((uuid, entity) -> entitiesNbt.put(uuid.toString(), entity.toNbt()));
+        nbt.put(TrackedEntity.TrackerKeys.HASH_MAP, entitiesNbt);
+        return nbt;
+    }
+
+    public static EntityTracker createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup ignoredRegistryLookup) {
+        EntityTracker state = new EntityTracker();
+        NbtCompound entitiesNbt = tag.getCompound(TrackedEntity.TrackerKeys.HASH_MAP);
+        entitiesNbt.getKeys().forEach(key -> {
+            NbtCompound entityNbt = entitiesNbt.getCompound(key);
+            state.trackedEntities.put(UUID.fromString(key), new TrackedEntity(entityNbt));
+        });
         return state;
     }
+
+    private static final Type<EntityTracker> type = new Type<>(
+            EntityTracker::new,
+            EntityTracker::createFromNbt,
+            null
+    );
+
+    private static EntityTracker getState(ServerWorld serverWorld) {
+        return serverWorld.getPersistentStateManager().getOrCreate(type, MOD_ID);
+    }
+    *///?}
 }

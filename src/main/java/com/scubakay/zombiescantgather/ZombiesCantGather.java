@@ -20,6 +20,10 @@ public class ZombiesCantGather implements ModInitializer {
 
     public static ModConfig MOD_CONFIG;
 
+    public static String getSaveKey(String namespace) {
+        return "zombiescantgather_" + namespace;
+    }
+
     @Override
     public void onInitialize() {
         MOD_CONFIG = ConfigBuilder.builder(ModConfig::new)

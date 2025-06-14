@@ -126,10 +126,10 @@ public class TrackerCommand extends RootCommand {
                                 //? >=1.21.5 {
                                 .withClickEvent(new ClickEvent.ChangePage(1))
                                 .withHoverEvent(new HoverEvent.ShowText(getTrackerRowToolTip(entity)))
-                                //? } else {
+                                //?} else {
                                 /*.withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1"))
                                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTrackerRowToolTip(entity)))
-                                *///? }
+                                *///?}
                                 .withFormatting(Formatting.GRAY))
                         .append(Text.literal(entity.getName()) // <name>
                                 .styled(style -> style
@@ -159,10 +159,10 @@ public class TrackerCommand extends RootCommand {
                         //? >=1.21.5 {
                         .withClickEvent(new ClickEvent.RunCommand(getTpCommand(entity)))
                         .withHoverEvent(new HoverEvent.ShowText(getTpButtonToolTIp(entity))));
-        //? } else {
+        //?} else {
                         /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getTpCommand(entity)))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTpButtonToolTIp(entity))));
-                        *///? }
+                        *///?}
     }
 
     private static Text getTpButtonToolTIp(TrackedEntity entity) {
@@ -228,35 +228,36 @@ public class TrackerCommand extends RootCommand {
 
     private static @NotNull PaginationParameters getPagination(List<TrackedEntity> tracker, int currentPage) {
         final int pageSize = 10;
-        int pages = tracker.size() / pageSize;
-        int startItem = Integer.min(pages, currentPage - 1) * pageSize;
-        int endItem = Integer.min(tracker.size(), startItem + pageSize);
+        int pageCount = tracker.size() / pageSize + 1;
+        int startItem = Integer.min(pageCount, currentPage - 1) * pageSize;
+        int endItem = Integer.min(tracker.size(), startItem + pageSize) - 1;
         int previousPage = currentPage - 1;
         int nextPage = currentPage + 1;
-        return new PaginationParameters(pages, startItem, endItem, pageSize, currentPage, previousPage, nextPage);
+        return new PaginationParameters(pageCount, startItem, endItem, pageSize, currentPage, previousPage, nextPage);
     }
 
     private static Text getPaginationText(PaginationParameters pagination) {
         Text navigation = Text.empty();
         if (pagination.currentPage > 2) {
-            navigation = navigation.copy().append(Text.literal("<< ").styled(style -> style.withColor(Colors.GREEN)
+            navigation = navigation.copy().append(Text.literal("<< ").styled(style -> style
+                    .withColor(Colors.GREEN)
                     //? >=1.21.5 {
                     .withClickEvent(new ClickEvent.RunCommand(getPageCommand(0)))
                     .withHoverEvent(new HoverEvent.ShowText(Text.literal("First page")))));
-            //? } else {
-                    /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getTpCommand(entity)))
-                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTpButtonToolTIp(entity))));
-                    *///? }
+            //?} else {
+                    /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(0)))
+                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("First page")))));
+                    *///?}
         }
         if (pagination.currentPage > 1) {
             navigation = navigation.copy().append(Text.literal("< ").styled(style -> style.withColor(Colors.GREEN)
                     //? >=1.21.5 {
                     .withClickEvent(new ClickEvent.RunCommand(getPageCommand(pagination.previousPage)))
                     .withHoverEvent(new HoverEvent.ShowText(Text.literal("Previous page")))));
-            //? } else {
+            //?} else {
                     /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.previousPage)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Previous page")))));
-                    *///? }
+                    *///?}
         }
         navigation = navigation.copy().append(Text.literal(pagination.currentPage + "/" + pagination.lastPage));
         if (pagination.currentPage < pagination.lastPage) {
@@ -264,20 +265,20 @@ public class TrackerCommand extends RootCommand {
                     //? >=1.21.5 {
                     .withClickEvent(new ClickEvent.RunCommand(getPageCommand(pagination.nextPage)))
                     .withHoverEvent(new HoverEvent.ShowText(Text.literal("Next page")))));
-            //? } else {
+            //?} else {
                     /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.nextPage)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Next page")))));
-                    *///? }
+                    *///?}
         }
         if (pagination.currentPage + 1 < pagination.lastPage) {
             navigation = navigation.copy().append(Text.literal(" >>").styled(style -> style.withColor(Colors.GREEN)
                     //? >=1.21.5 {
                     .withClickEvent(new ClickEvent.RunCommand(getPageCommand(pagination.lastPage)))
                     .withHoverEvent(new HoverEvent.ShowText(Text.literal("Last page")))));
-            //? } else {
+            //?} else {
                     /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.lastPage)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Last page")))));
-                    *///? }
+                    *///?}
         }
         return navigation;
     }
