@@ -12,6 +12,7 @@ class ModData {
     val id = property("mod.id").toString()
     val name = property("mod.name").toString()
     val version = property("mod.version").toString()
+    val title = property("mod.mc_title").toString()
     val group = property("mod.group").toString()
 }
 
@@ -25,7 +26,7 @@ val mcVersion = stonecutter.current.version
 val mcDep = property("mod.mc_dep").toString()
 val publish = property("mod.publish")
 
-version = "${mod.version}+$mcVersion"
+version = "${mod.version}+${mod.title}"
 group = mod.group
 base { archivesName.set(mod.id) }
 
@@ -144,7 +145,7 @@ if (publish == true || publish == "true") {
 
         file = tasks.remapJar.get().archiveFile
         additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
-        displayName = "${mod.name} ${mod.version} for $mcVersion"
+        displayName = "${mod.name} ${mod.version} for ${mod.title}"
         version = mod.version
         changelog = rootProject.file("CHANGELOG.md").readText()
         type = ALPHA
