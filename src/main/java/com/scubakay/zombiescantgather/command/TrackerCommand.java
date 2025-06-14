@@ -75,6 +75,11 @@ public class TrackerCommand extends RootCommand {
                 .sorted(Comparator.comparingInt(x -> -x.count))
                 .toList();
 
+        if (tracker.isEmpty()) {
+            CommandUtil.reply(context, Text.literal("No entities holding blacklisted items have been tracked yet").withColor(Colors.GREEN));
+            return Command.SINGLE_SUCCESS;
+        }
+
         CommandUtil.reply(context, Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", tracker.size())));
 
         final PaginationParameters pagination = getPagination(tracker, currentPage);
