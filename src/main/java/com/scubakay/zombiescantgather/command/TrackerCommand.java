@@ -242,7 +242,7 @@ public class TrackerCommand extends RootCommand {
             navigation = navigation.copy().append(Text.literal("<< ").styled(style -> style
                     .withColor(Colors.GREEN)
                     //? >=1.21.5 {
-                    .withClickEvent(new ClickEvent.RunCommand(getPageCommand(0)))
+                    .withClickEvent(new ClickEvent.RunCommand(getPageCommand(1)))
                     .withHoverEvent(new HoverEvent.ShowText(Text.literal("First page")))));
             //?} else {
                     /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(0)))
