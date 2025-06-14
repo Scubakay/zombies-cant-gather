@@ -33,7 +33,7 @@ public class ModConfig {
                 .comment("Enable/disable tracker");
         showTrackerLogs = builder
                 .entry("show_tracker_logs", DEFAULT_SHOW_TRACKER_LOGS)
-                .comment("Enable/disable tracker");
+                .comment("Show tracker logs");
         trackCustomNamedMobs = builder
                 .entry("track_custom_named_mobs", DEFAULT_TRACK_CUSTOM_NAMED_MOBS)
                 .comment("Enable/disable tracking of mobs with a custom name");
