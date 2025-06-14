@@ -16,6 +16,15 @@ Now with support for Piglins!
 
 ## Tracker
 
+Do you have an existing world where mobs are already holding items you added to the blacklist? Turn on the tracker
+and sniff them out. To turn on the tracker, set enable_tracker in the config to true. The tracker is turned off
+by default.
+
+```properties
+# Track mobs holding blacklisted items
+enable_tracker=true
+```
+
 The tracker in Zombies Can't Gather logs of every time a mob holding a blacklisted item is loaded so you can 
 use a command to see where all those persistent mobs are. When turned on, running the command
 `/zombiescantgather tracker` will show information about those mobs, like the item they are holding and
@@ -27,15 +36,6 @@ When the player has the `zombiescantgather.tracker.teleport` command, they will 
 teleport to the mob too. The teleport also works for mobs in unloaded chunks.
 
 Running `/zombiescantgather tracker reset` will clear the list, so you can start fresh.
-
-### Enabling the tracker
-
-To turn on the tracker, set enable_tracker in the config to true:
-
-```properties
-# Enable/disable tracker
-enable_tracker=true
-```
 
 ## Configuring the blacklists
 

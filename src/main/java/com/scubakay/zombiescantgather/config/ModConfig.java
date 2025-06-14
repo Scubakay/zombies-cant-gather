@@ -26,22 +26,22 @@ public class ModConfig {
     public ModConfig(ConfigBuilder builder) {
         zombiesCantGather = builder
                 .entry("zombiescantgather_items", DEFAULT_ZOMBIE_ITEMS)
-                .comment("List of items that zombies should not pick up");
+                .comment("Blacklist: Zombies can't pick up these items");
         piglinsCantGather = builder
                 .entry("piglinscantgather_items", DEFAULT_PIGLIN_ITEMS)
-                .comment("List of items that piglins should not pick up");
+                .comment("Blacklist: Piglins can't pick up these items");
         enableTracker = builder
                 .entry("enable_tracker", DEFAULT_ENABLE_TRACKER)
-                .comment("Enable/disable tracker");
+                .comment("Track mobs holding blacklisted items");
         showTrackerLogs = builder
                 .entry("show_tracker_logs", DEFAULT_SHOW_TRACKER_LOGS)
-                .comment("Show tracker logs");
+                .comment("Show tracker updates in the console");
         trackCustomNamedMobs = builder
                 .entry("track_custom_named_mobs", DEFAULT_TRACK_CUSTOM_NAMED_MOBS)
                 .comment("Track mobs with a custom name");
         broadcastTrackedMobs = builder
                 .entry("broadcast_tracked_mobs", DEFAULT_BROADCAST_TRACKED_MOBS)
-                .comment("Broadcast entity log message to OPs");
+                .comment("Broadcast tracker updates to OPs");
     }
 
     public void addZombieItem(String item) {
