@@ -101,7 +101,7 @@ public class EntityTracker extends PersistentState {
     /*@Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
         NbtCompound entitiesNbt = new NbtCompound();
-        this.trackedEntities.forEach((uuid, entity) -> entitiesNbt.put(uuid.toString(), entity.toNbt()));
+        this.entities.forEach((uuid, entity) -> entitiesNbt.put(uuid.toString(), entity.toNbt()));
         nbt.put(TrackedEntity.TrackerKeys.HASH_MAP, entitiesNbt);
         return nbt;
     }
@@ -111,7 +111,7 @@ public class EntityTracker extends PersistentState {
         NbtCompound entitiesNbt = tag.getCompound(TrackedEntity.TrackerKeys.HASH_MAP);
         entitiesNbt.getKeys().forEach(key -> {
             NbtCompound entityNbt = entitiesNbt.getCompound(key);
-            state.trackedEntities.put(UUID.fromString(key), new TrackedEntity(entityNbt));
+            state.entities.put(UUID.fromString(key), new TrackedEntity(entityNbt));
         });
         return state;
     }
