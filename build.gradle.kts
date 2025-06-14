@@ -23,6 +23,7 @@ val mod = ModData()
 val deps = ModDependencies()
 val mcVersion = stonecutter.current.version
 val mcDep = property("mod.mc_dep").toString()
+val publish = property("mod.publish")
 
 version = "${mod.version}+$mcVersion"
 group = mod.group
@@ -132,33 +133,35 @@ tasks.register<Copy>("buildAndCollect") {
     dependsOn("build")
 }
 
-publishMods {
-    fun versionList(prop: String) = findProperty(prop)?.toString()
-        ?.split("\\s+".toRegex())
-        ?.map { it.trim() }
-        ?: emptyList()
-    val versions = versionList("mod.mc_targets")
+if (publish == true || publish == "true") {
+    publishMods {
+        fun versionList(prop: String) = findProperty(prop)?.toString()
+            ?.split("\\s+".toRegex())
+            ?.map { it.trim() }
+            ?: emptyList()
 
-    file = tasks.remapJar.get().archiveFile
-    additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
-    displayName = "${mod.name} ${mod.version} for $mcVersion"
-    version = mod.version
-    changelog = rootProject.file("CHANGELOG.md").readText()
-    type = ALPHA
-    modLoaders.add("fabric")
+        val versions = versionList("mod.mc_targets")
 
-    dryRun = providers.environmentVariable("MODRINTH_TOKEN")
-        .getOrNull() == null
-    //|| providers.environmentVariable("CURSEFORGE_TOKEN").getOrNull() == null
+        file = tasks.remapJar.get().archiveFile
+        additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
+        displayName = "${mod.name} ${mod.version} for $mcVersion"
+        version = mod.version
+        changelog = rootProject.file("CHANGELOG.md").readText()
+        type = ALPHA
+        modLoaders.add("fabric")
 
-    modrinth {
-        projectId = property("publish.modrinth").toString()
-        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
-        minecraftVersions.addAll(versions)
-        requires {
-            slug = "fabric-api"
+        dryRun = providers.environmentVariable("MODRINTH_TOKEN")
+            .getOrNull() == null
+        //|| providers.environmentVariable("CURSEFORGE_TOKEN").getOrNull() == null
+
+        modrinth {
+            projectId = property("publish.modrinth").toString()
+            accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+            minecraftVersions.addAll(versions)
+            requires {
+                slug = "fabric-api"
+            }
         }
-    }
 
 //    curseforge {
 //        projectId = property("publish.curseforge").toString()
@@ -168,26 +171,29 @@ publishMods {
 //            slug = "fabric-api"
 //        }
 //    }
-}
+    }
 
-publishing {
-    repositories {
-        maven("...") {
-            name = "..."
-            credentials(PasswordCredentials::class.java)
-            authentication {
-                create<BasicAuthentication>("basic")
+    publishing {
+        repositories {
+            maven("...") {
+                name = "..."
+                credentials(PasswordCredentials::class.java)
+                authentication {
+                    create<BasicAuthentication>("basic")
+                }
+            }
+        }
+
+        publications {
+            create<MavenPublication>("mavenJava") {
+                groupId = "${property("mod.group")}.${mod.id}"
+                artifactId = mod.version
+                version = mcVersion
+
+                from(components["java"])
             }
         }
     }
-
-    publications {
-        create<MavenPublication>("mavenJava") {
-            groupId = "${property("mod.group")}.${mod.id}"
-            artifactId = mod.version
-            version = mcVersion
-
-            from(components["java"])
-        }
-    }
+} else {
+    logger.lifecycle("Skipping publishing ${projectDir.name}: 'mod.publish' property is false.")
 }
