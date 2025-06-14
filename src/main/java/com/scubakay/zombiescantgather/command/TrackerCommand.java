@@ -31,10 +31,11 @@ import java.util.*;
 
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
 
+@SuppressWarnings("SameReturnValue")
 public class TrackerCommand extends RootCommand {
-    public static String TRACKER_COMMAND = "tracker";
-    public static String TRACKER_RESET_COMMAND = "reset";
-    public static String TRACKER_TELEPORT_COMMAND = "teleport";
+    public static final String TRACKER_COMMAND = "tracker";
+    public static final String TRACKER_RESET_COMMAND = "reset";
+    public static final String TRACKER_TELEPORT_COMMAND = "teleport";
 
     public static void register(CommandDispatcher<ServerCommandSource> ignoredDispatcher, CommandRegistryAccess ignoredRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
         LiteralCommandNode<ServerCommandSource> tracker = CommandManager
@@ -65,7 +66,7 @@ public class TrackerCommand extends RootCommand {
 
     }
 
-    public static int list(CommandContext<ServerCommandSource> context, int current_page) {
+    public static int list(CommandContext<ServerCommandSource> context, int currentPage) {
         List<TrackedEntity> tracker = EntityTracker
                 .getServerState(context.getSource().getServer())
                 .getTrackedEntities()
@@ -74,21 +75,14 @@ public class TrackerCommand extends RootCommand {
                 .sorted(Comparator.comparingInt(x -> -x.count))
                 .toList();
 
-        final int PAGE_SIZE = 10;
-        int pages = tracker.size() / PAGE_SIZE;
-        int startItem = Integer.min(pages, current_page - 1) * PAGE_SIZE;
-        int endItem = Integer.min(tracker.size(), startItem + PAGE_SIZE);
-
         CommandUtil.reply(context, Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", tracker.size())));
 
-        for (int i = startItem; i < endItem; i++) {
-            TrackedEntity entity = tracker.get(i);
-            final Text tpButton = getTpButton(context, entity);
-            final Text trackerRow = getTrackerRow(entity);
-            CommandUtil.reply(context, tpButton.copy().append(trackerRow));
+        final PaginationParameters pagination = getPagination(tracker, currentPage);
+        for (int i = pagination.startItem; i < pagination.endItem; i++) {
+            CommandUtil.reply(context, getTrackerRow(context.getSource(), tracker.get(i)));
         }
 
-        CommandUtil.reply(context, getNavigationText(current_page, pages));
+        CommandUtil.reply(context, getPaginationText(pagination));
 
         return Command.SINGLE_SUCCESS;
     }
@@ -117,8 +111,33 @@ public class TrackerCommand extends RootCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static Text getTpButton(CommandContext<ServerCommandSource> context, TrackedEntity entity) {
-        if (!hasPermission(context.getSource(), PermissionManager.TRACKER_TELEPORT_PERMISSION)) {
+    public static Text getTrackerRow(ServerCommandSource context, TrackedEntity entity) {
+        return getTpButton(context, entity).copy()
+                .append(Text.literal(String.format("(%dx) ", entity.count))
+                        .styled(style -> style
+                                .withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1"))
+                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTrackerRowToolTip(entity)))
+                                .withFormatting(Formatting.GRAY))
+                        .append(Text.literal(entity.name) // <name>
+                                .styled(style -> style
+                                        .withFormatting(Formatting.WHITE)))
+                        .append(Text.literal(" is holding ")
+                                .styled(style -> style
+                                        .withFormatting(Formatting.GRAY)))
+                        .append(Text.literal(entity.item)
+                                .styled(style -> style
+                                        .withFormatting(Formatting.WHITE))));
+    }
+
+    private static Text getTrackerRowToolTip(TrackedEntity entity) {
+        return Text.literal(entity.name)
+                .styled(style -> style
+                        .withFormatting(Formatting.BOLD)
+                        .withColor(entity.getDimensionColor())).append(getTooltipDescription(entity));
+    }
+
+    private static Text getTpButton(ServerCommandSource context, TrackedEntity entity) {
+        if (!hasPermission(context, PermissionManager.TRACKER_TELEPORT_PERMISSION)) {
             return Text.empty();
         }
         return Text.literal("[TP] ")
@@ -138,30 +157,6 @@ public class TrackerCommand extends RootCommand {
                                 .withFormatting(Formatting.YELLOW)
                                 .withFormatting(Formatting.ITALIC)));
 
-    }
-
-    private static Text getTrackerRow(TrackedEntity entity) {
-        return Text.literal(String.format("(%dx) ", entity.count))
-                .styled(style -> style
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1"))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTrackerRowToolTip(entity)))
-                        .withFormatting(Formatting.GRAY))
-                .append(Text.literal(entity.name) // <name>
-                        .styled(style -> style
-                                .withFormatting(Formatting.WHITE)))
-                .append(Text.literal(" is holding ")
-                        .styled(style -> style
-                                .withFormatting(Formatting.GRAY)))
-                .append(Text.literal(entity.item)
-                        .styled(style -> style
-                                .withFormatting(Formatting.WHITE)));
-    }
-
-    private static Text getTrackerRowToolTip(TrackedEntity entity) {
-        return Text.literal(entity.name)
-                .styled(style -> style
-                        .withFormatting(Formatting.BOLD)
-                        .withColor(entity.getDimensionColor())).append(getTooltipDescription(entity));
     }
 
     private static Text getTooltipDescription(TrackedEntity entity) {
@@ -203,29 +198,47 @@ public class TrackerCommand extends RootCommand {
                                 .withBold(false)));
     }
 
-    private static Text getNavigationText(int current_page, int last_page) {
-        int previous_page = current_page - 1;
-        int next_page = current_page + 1;
+    private record PaginationParameters(
+            int lastPage,
+            int startItem,
+            int endItem,
+            int pageSize,
+            int currentPage,
+            int previousPage,
+            int nextPage
+    ) {}
+
+    private static @NotNull PaginationParameters getPagination(List<TrackedEntity> tracker, int currentPage) {
+        final int pageSize = 10;
+        int pages = tracker.size() / pageSize;
+        int startItem = Integer.min(pages, currentPage - 1) * pageSize;
+        int endItem = Integer.min(tracker.size(), startItem + pageSize);
+        int previousPage = currentPage - 1;
+        int nextPage = currentPage + 1;
+        return new PaginationParameters(pages, startItem, endItem, pageSize, currentPage, previousPage, nextPage);
+    }
+
+    private static Text getPaginationText(PaginationParameters pagination) {
         Text navigation = Text.empty();
-        if (current_page > 2) {
+        if (pagination.currentPage > 2) {
             navigation = navigation.copy().append(Text.literal("<< ").styled(style -> style.withColor(Colors.GREEN)
                     .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(0)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("First page")))));
         }
-        if (current_page > 1) {
+        if (pagination.currentPage > 1) {
             navigation = navigation.copy().append(Text.literal("< ").styled(style -> style.withColor(Colors.GREEN)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(previous_page)))
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.previousPage)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Previous page")))));
         }
-        navigation = navigation.copy().append(Text.literal(current_page + "/" + last_page));
-        if (current_page < last_page) {
+        navigation = navigation.copy().append(Text.literal(pagination.currentPage + "/" + pagination.lastPage));
+        if (pagination.currentPage < pagination.lastPage) {
             navigation = navigation.copy().append(Text.literal(" >").styled(style -> style.withColor(Colors.GREEN)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(next_page)))
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.nextPage)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Next page")))));
         }
-        if (current_page + 1 < last_page) {
+        if (pagination.currentPage + 1 < pagination.lastPage) {
             navigation = navigation.copy().append(Text.literal(" >>").styled(style -> style.withColor(Colors.GREEN)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(last_page)))
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.lastPage)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Last page")))));
         }
         return navigation;

@@ -3,6 +3,7 @@ package com.scubakay.zombiescantgather.command;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 public class PermissionManager {
     @SuppressWarnings("unused")
@@ -15,12 +16,18 @@ public class PermissionManager {
     public static final String BLACKLIST_RESET_PERMISSION = BLACKLIST_PERMISSION + ".reset";
 
     public static final String TRACKER_PERMISSION = ROOT_PERMISSION + ".tracker";
+    public static final String TRACKER_LOG_PERMISSION = TRACKER_PERMISSION + ".log";
     public static final String TRACKER_RESET_PERMISSION = TRACKER_PERMISSION + ".reset";
     public static final String TRACKER_TELEPORT_PERMISSION = TRACKER_PERMISSION + ".teleport";
 
     private static final int DEFAULT_PERMISSION_LEVEL = 4;
 
     private static final boolean fabricPermissionsApi = FabricLoader.getInstance().isModLoaded("fabric-permissions-api-v0");
+
+    public static boolean hasPermission(ServerPlayerEntity player, String permission) {
+        if (player.hasPermissionLevel(DEFAULT_PERMISSION_LEVEL)) return true;
+        return fabricPermissionsApi && Permissions.check(player, permission);
+    }
 
     public static boolean hasPermission(ServerCommandSource source, String permission) {
         if (source.hasPermissionLevel(DEFAULT_PERMISSION_LEVEL)) return true;

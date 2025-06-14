@@ -14,12 +14,14 @@ public class ModConfig {
     private final boolean DEFAULT_ENABLE_TRACKER = false;
     private final boolean DEFAULT_SHOW_TRACKER_LOGS = false;
     private final boolean DEFAULT_TRACK_CUSTOM_NAMED_MOBS = false;
+    private final boolean DEFAULT_BROADCAST_TRACKED_MOBS = false;
 
-    public ConfigEntry<StringList> zombiesCantGather;
-    public ConfigEntry<StringList> piglinsCantGather;
-    public ConfigEntry<Boolean> enableTracker;
-    public ConfigEntry<Boolean> showTrackerLogs;
-    public ConfigEntry<Boolean> trackCustomNamedMobs;
+    public final ConfigEntry<StringList> zombiesCantGather;
+    public final ConfigEntry<StringList> piglinsCantGather;
+    public final ConfigEntry<Boolean> enableTracker;
+    public final ConfigEntry<Boolean> showTrackerLogs;
+    public final ConfigEntry<Boolean> trackCustomNamedMobs;
+    public final ConfigEntry<Boolean> broadcastTrackedMobs;
 
     public ModConfig(ConfigBuilder builder) {
         zombiesCantGather = builder
@@ -36,7 +38,10 @@ public class ModConfig {
                 .comment("Show tracker logs");
         trackCustomNamedMobs = builder
                 .entry("track_custom_named_mobs", DEFAULT_TRACK_CUSTOM_NAMED_MOBS)
-                .comment("Enable/disable tracking of mobs with a custom name");
+                .comment("Track mobs with a custom name");
+        broadcastTrackedMobs = builder
+                .entry("broadcast_tracked_mobs", DEFAULT_BROADCAST_TRACKED_MOBS)
+                .comment("Broadcast entity log message to OPs");
     }
 
     public void addZombieItem(String item) {

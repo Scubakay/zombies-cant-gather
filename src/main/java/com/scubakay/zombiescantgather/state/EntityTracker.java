@@ -1,5 +1,7 @@
 package com.scubakay.zombiescantgather.state;
 
+import com.scubakay.zombiescantgather.command.PermissionManager;
+import com.scubakay.zombiescantgather.command.TrackerCommand;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
@@ -9,9 +11,11 @@ import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
 
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.scubakay.zombiescantgather.ZombiesCantGather.*;
+import static com.scubakay.zombiescantgather.command.PermissionManager.hasPermission;
 
 public class EntityTracker extends PersistentState {
     public static final String TRACKER_KEY = "TrackerEntities";
@@ -42,8 +46,13 @@ public class EntityTracker extends PersistentState {
 
         this.trackedEntities.put(trackedEntity.uuid, trackedEntity);
         this.markDirty();
-        if (MOD_CONFIG.showTrackerLogs.get()){
+        if (MOD_CONFIG.showTrackerLogs.get()) {
             LOGGER.info("Loaded {} {} time(s) holding blacklisted item \"{}\" at {}", trackedEntity.name, trackedEntity.count, trackedEntity.item, trackedEntity.pos.toShortString());
+        }
+        if (MOD_CONFIG.broadcastTrackedMobs.get()){
+            Objects.requireNonNull(entity.getServer()).getPlayerManager().getPlayerList().stream()
+                    .filter(player -> hasPermission(player, PermissionManager.TRACKER_LOG_PERMISSION))
+                    .forEach(player -> player.getCommandSource().sendMessage(TrackerCommand.getTrackerRow(player.getCommandSource(), trackedEntity)));
         }
     }
 
@@ -55,7 +64,7 @@ public class EntityTracker extends PersistentState {
         return nbt;
     }
 
-    public static EntityTracker createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
+    public static EntityTracker createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup ignoredRegistryLookup) {
         EntityTracker state = new EntityTracker();
         NbtCompound entitiesNbt = tag.getCompound(TRACKER_KEY);
         entitiesNbt.getKeys().forEach(key -> {
