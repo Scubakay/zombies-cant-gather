@@ -16,9 +16,10 @@ Now with support for Piglins!
 
 ## Tracker
 
-The tracker will log any zombies or piglins holding blacklisted items. When turned on, running the command 
+The tracker in Zombies Can't Gather logs of every time a mob holding a blacklisted item is loaded so you can 
+use a command to see where all those persistent mobs are. When turned on, running the command
 `/zombiescantgather tracker` will show information about those mobs, like the item they are holding and
-the amount of times the mob has been loaded:
+the amount of times the mob has been loaded.
 
 <img src="docs/tracker_command.png" alt="Tracker Command Example" style="max-width: 400px; width: 100%;" />
 
@@ -65,17 +66,6 @@ If you added weird stuff and want to start over, use the reset commands:
 /zombiescantgather zombie reset
 /zombiescantgather piglin reset
 ```
-
-## Tracked entities
-
-Zombies Can't Gather keeps track of every time an entity holding a blacklisted item is loaded so you can use a command
-to see where all those persistent mobs are:
-
-```properties
-/zombiescantgather tracked list <optional:page>
-```
-The command displays a paginated list of entites sorted by the amount of times they were loaded, with a button to quickly
-teleport to the entity so you can take care of it. Provided you have the correct permissions of course.
 
 ## Manual configuration
 
