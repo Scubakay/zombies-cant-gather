@@ -83,7 +83,7 @@ public class TrackerCommand extends RootCommand {
         CommandUtil.reply(context, Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", tracker.size())));
 
         final PaginationParameters pagination = getPagination(tracker, currentPage);
-        for (int i = pagination.startItem; i < pagination.endItem; i++) {
+        for (int i = pagination.startItem; i <= pagination.endItem; i++) {
             CommandUtil.reply(context, getTrackerRow(context.getSource(), tracker.get(i)));
         }
 
@@ -217,7 +217,7 @@ public class TrackerCommand extends RootCommand {
     }
 
     private record PaginationParameters(
-            int lastPage,
+            int pageCount,
             int startItem,
             int endItem,
             int pageSize,
@@ -228,7 +228,7 @@ public class TrackerCommand extends RootCommand {
 
     private static @NotNull PaginationParameters getPagination(List<TrackedEntity> tracker, int currentPage) {
         final int pageSize = 10;
-        int pageCount = tracker.size() / pageSize + 1;
+        int pageCount = !tracker.isEmpty() ? tracker.size() / pageSize + 1 : 0;
         int startItem = Integer.min(pageCount, currentPage - 1) * pageSize;
         int endItem = Integer.min(tracker.size(), startItem + pageSize) - 1;
         int previousPage = currentPage - 1;
@@ -237,6 +237,13 @@ public class TrackerCommand extends RootCommand {
     }
 
     private static Text getPaginationText(PaginationParameters pagination) {
+        if (pagination.pageCount == 0) {
+            return Text.literal("No mobs with blacklisted items tracked yet")
+                    .styled(style -> style
+                            .withFormatting(Formatting.GREEN));
+        } else if (pagination.pageCount == 1) {
+            return Text.empty();
+        }
         Text navigation = Text.empty();
         if (pagination.currentPage > 2) {
             navigation = navigation.copy().append(Text.literal("<< ").styled(style -> style
@@ -259,8 +266,8 @@ public class TrackerCommand extends RootCommand {
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Previous page")))));
                     *///?}
         }
-        navigation = navigation.copy().append(Text.literal(pagination.currentPage + "/" + pagination.lastPage));
-        if (pagination.currentPage < pagination.lastPage) {
+        navigation = navigation.copy().append(Text.literal(pagination.currentPage + "/" + pagination.pageCount));
+        if (pagination.currentPage < pagination.pageCount) {
             navigation = navigation.copy().append(Text.literal(" >").styled(style -> style.withColor(Colors.GREEN)
                     //? >=1.21.5 {
                     .withClickEvent(new ClickEvent.RunCommand(getPageCommand(pagination.nextPage)))
@@ -270,13 +277,13 @@ public class TrackerCommand extends RootCommand {
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Next page")))));
                     *///?}
         }
-        if (pagination.currentPage + 1 < pagination.lastPage) {
+        if (pagination.currentPage + 1 < pagination.pageCount) {
             navigation = navigation.copy().append(Text.literal(" >>").styled(style -> style.withColor(Colors.GREEN)
                     //? >=1.21.5 {
-                    .withClickEvent(new ClickEvent.RunCommand(getPageCommand(pagination.lastPage)))
+                    .withClickEvent(new ClickEvent.RunCommand(getPageCommand(pagination.pageCount)))
                     .withHoverEvent(new HoverEvent.ShowText(Text.literal("Last page")))));
             //?} else {
-                    /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.lastPage)))
+                    /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.pageCount)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Last page")))));
                     *///?}
         }
