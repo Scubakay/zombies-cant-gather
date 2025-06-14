@@ -86,7 +86,7 @@ loom {
     }
 
     runConfigs.all {
-        ideConfigGenerated(true)
+        ideConfigGenerated(false)
         vmArgs("-Dmixin.debug.export=true")
         runDir = "../../run"
     }
@@ -132,6 +132,26 @@ tasks.register<Copy>("buildAndCollect") {
     from(tasks.remapJar.get().archiveFile)
     into(rootProject.layout.buildDirectory.file("libs/${mod.version}"))
     dependsOn("build")
+}
+
+if (stonecutter.current.isActive) {
+    rootProject.tasks.register("Run Active Server") {
+        group = "stonecutter"
+        dependsOn(tasks.named("runServer"))
+    }
+
+    loom {
+        runs {
+            create("Run Active Server") {
+                server()
+                ideConfigGenerated(true)
+                runDir = "../../run"
+                name = "Run Active Server"
+                vmArgs("-Dmixin.debug.export=true")
+                property("fabric.mcVersion", mcVersion)
+            }
+        }
+    }
 }
 
 if (publish == true || publish == "true") {
@@ -198,3 +218,5 @@ if (publish == true || publish == "true") {
 } else {
     logger.lifecycle("Skipping publishing ${projectDir.name}: 'mod.publish' property is false.")
 }
+
+// Good job. You just added a comment
