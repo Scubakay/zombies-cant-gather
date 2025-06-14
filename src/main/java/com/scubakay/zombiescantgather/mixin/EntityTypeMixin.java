@@ -25,7 +25,7 @@ public class EntityTypeMixin {
     @Inject(method = "method_17843", at = @At("RETURN"))
     private static void zombiesCantGather$checkForbiddenItems(NbtCompound nbtCompound, World world, SpawnReason spawnReason, Function<Entity, Entity> function, Entity entity, CallbackInfoReturnable<Entity> cir) {
         if (MOD_CONFIG.enableTracker.get() && world instanceof ServerWorld && entity instanceof MobEntity mobEntity) {
-            if (mobEntity.getCustomName() != null || MOD_CONFIG.trackCustomNamedMobs.get()) {
+            if (mobEntity.getCustomName() == null || MOD_CONFIG.trackCustomNamedMobs.get()) {
                 ItemStack item = mobEntity.getHandItems().iterator().next();
                 if (entity instanceof ZombieEntity zombie && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
                     EntityTracker.getServerState(world.getServer()).trackEntity(zombie);
