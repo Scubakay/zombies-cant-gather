@@ -18,7 +18,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
-import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Formatting;
@@ -130,25 +129,21 @@ public class TrackerCommand extends RootCommand {
     }
 
     private static Text getTpButtonToolTIp(TrackedEntity entity) {
-        return Text.literal(getTpButtonTitle(entity))
+        return Text.literal(entity.name)
                 .styled(style -> style
                         .withColor(entity.getDimensionColor())
-                        .withFormatting(Formatting.BOLD))
-                .append(Text.literal("Runs: ")
+                        .withFormatting(Formatting.BOLD)).append(getTooltipDescription(entity))
+                .append(Text.literal("\nClick to teleport")
                         .styled(style -> style
-                                .withFormatting(Formatting.GRAY)
-                                .withBold(false)))
-                .append(Text.literal(getTpCommand(entity))
-                        .styled(style -> style
-                                .withFormatting(Formatting.WHITE)
-                                .withFormatting(Formatting.ITALIC)
-                                .withBold(false)));
+                                .withFormatting(Formatting.YELLOW)
+                                .withFormatting(Formatting.ITALIC)));
+
     }
 
     private static Text getTrackerRow(TrackedEntity entity) {
         return Text.literal(String.format("(%dx) ", entity.count))
                 .styled(style -> style
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, getTpCommand(entity)))
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1"))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTrackerRowToolTip(entity)))
                         .withFormatting(Formatting.GRAY))
                 .append(Text.literal(entity.name) // <name>
@@ -166,14 +161,19 @@ public class TrackerCommand extends RootCommand {
         return Text.literal(entity.name)
                 .styled(style -> style
                         .withFormatting(Formatting.BOLD)
-                        .withColor(entity.getDimensionColor()))
-                .append(Text.literal("\nDimension: ")
-                        .styled((Style style) -> style
-                                .withFormatting(Formatting.GRAY)
-                                .withBold(false)))
-                .append(Text.literal(entity.dimension)
+                        .withColor(entity.getDimensionColor())).append(getTooltipDescription(entity));
+    }
+
+    private static Text getTooltipDescription(TrackedEntity entity) {
+        return Text.literal("\nDimension: ")
+                .styled(style -> style
+                        .withFormatting(Formatting.GRAY)
+                        .withBold(false))
+                .append(Text.literal(entity.getDimensionName())
                         .styled(style -> style
-                                .withFormatting(Formatting.WHITE)))
+                                .withFormatting(Formatting.WHITE)
+                                .withFormatting(Formatting.ITALIC)
+                                .withBold(false)))
                 .append(Text.literal("\nLocation: ")
                         .styled(style -> style
                                 .withFormatting(Formatting.GRAY)
@@ -181,6 +181,25 @@ public class TrackerCommand extends RootCommand {
                 .append(Text.literal(entity.pos.toShortString())
                         .styled(style -> style
                                 .withFormatting(Formatting.WHITE)
+                                .withFormatting(Formatting.ITALIC)
+                                .withBold(false)))
+                .append(Text.literal("\nHolding: ")
+                        .styled(style -> style
+                                .withFormatting(Formatting.GRAY)
+                                .withBold(false)))
+                .append(Text.literal(entity.item)
+                        .styled(style -> style
+                                .withFormatting(Formatting.WHITE)
+                                .withFormatting(Formatting.ITALIC)
+                                .withBold(false)))
+                .append(Text.literal("\nLoaded: ")
+                        .styled(style -> style
+                                .withFormatting(Formatting.GRAY)
+                                .withBold(false)))
+                .append(Text.literal(String.format("%d times", entity.count))
+                        .styled(style -> style
+                                .withFormatting(Formatting.WHITE)
+                                .withFormatting(Formatting.ITALIC)
                                 .withBold(false)));
     }
 
@@ -218,9 +237,5 @@ public class TrackerCommand extends RootCommand {
 
     private static @NotNull String getTpCommand(TrackedEntity entity) {
         return String.format("/%s %s %s %s", ROOT_COMMAND, TRACKER_COMMAND, TRACKER_TELEPORT_COMMAND, entity.uuid);
-    }
-
-    private static @NotNull String getTpButtonTitle(TrackedEntity entity) {
-        return String.format("Teleport to %s in the %s\n", entity.name, entity.getDimensionName());
     }
 }

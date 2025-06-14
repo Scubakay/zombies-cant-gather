@@ -15,7 +15,6 @@ public class PermissionManager {
     public static final String BLACKLIST_RESET_PERMISSION = BLACKLIST_PERMISSION + ".reset";
 
     public static final String TRACKER_PERMISSION = ROOT_PERMISSION + ".tracker";
-    public static final String TRACKER_LIST_PERMISSION = TRACKER_PERMISSION + ".list";
     public static final String TRACKER_RESET_PERMISSION = TRACKER_PERMISSION + ".reset";
     public static final String TRACKER_TELEPORT_PERMISSION = TRACKER_PERMISSION + ".teleport";
 

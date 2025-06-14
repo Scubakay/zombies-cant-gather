@@ -20,7 +20,7 @@ public class TrackedEntity {
 
     public TrackedEntity(MobEntity entity) {
         uuid = entity.getUuid();
-        name = entity.getName().getLiteralString();
+        name = entity.getName().getString();
         item = entity.getHandItems().iterator().next().getItem().asItem().toString();
         pos = entity.getBlockPos();
         dimension = entity.getWorld().getDimensionEntry().getIdAsString();
