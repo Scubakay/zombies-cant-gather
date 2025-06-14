@@ -28,14 +28,15 @@ import static com.scubakay.zombiescantgather.ZombiesCantGather.*;
 import static com.scubakay.zombiescantgather.command.PermissionManager.hasPermission;
 
 public class EntityTracker extends PersistentState {
-    private final Map<UUID, TrackedEntity> trackedEntities;
+    private final Map<UUID, TrackedEntity> entities;
 
     public EntityTracker() {
         this(new HashMap<>());
     }
 
-    public EntityTracker(Map<UUID, TrackedEntity> trackedEntities) {
-        this.trackedEntities = trackedEntities;
+    public EntityTracker(Map<UUID, TrackedEntity> entities) {
+        // Ensure the map is always mutable
+        this.entities = new HashMap<>(entities);
     }
 
     public static EntityTracker getServerState(MinecraftServer server) {
@@ -47,32 +48,32 @@ public class EntityTracker extends PersistentState {
     }
 
     public Map<UUID, TrackedEntity> get() {
-        return this.trackedEntities;
+        return this.entities;
     }
 
     public TrackedEntity get(UUID uuid) {
-        return this.trackedEntities.get(uuid);
+        return this.entities.get(uuid);
     }
 
     public void remove(UUID uuid) {
-        this.trackedEntities.remove(uuid);
+        this.entities.remove(uuid);
         this.markDirty();
     }
 
     public void clear() {
-        this.trackedEntities.clear();
+        this.entities.clear();
         this.markDirty();
     }
 
     public void track(MobEntity entity) {
         TrackedEntity trackedEntity = new TrackedEntity(entity);
 
-        final TrackedEntity existingEntity = this.trackedEntities.get(trackedEntity.getUuid());
+        final TrackedEntity existingEntity = this.entities.get(trackedEntity.getUuid());
         if (existingEntity != null) {
             trackedEntity.addCount(existingEntity.getCount());
         }
 
-        this.trackedEntities.put(trackedEntity.getUuid(), trackedEntity);
+        this.entities.put(trackedEntity.getUuid(), trackedEntity);
         this.markDirty();
         if (MOD_CONFIG.showTrackerLogs.get()) {
             LOGGER.info("Loaded {} {} time(s) holding blacklisted item \"{}\" at {}", trackedEntity.getName(), trackedEntity.getCount(), trackedEntity.getItem(), trackedEntity.getPos().toShortString());
