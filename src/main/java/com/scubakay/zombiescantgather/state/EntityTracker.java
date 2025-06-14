@@ -17,7 +17,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 //?} else {
 /*import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
-*///? }
+*///?}
 
 import java.util.HashMap;
 import java.util.Map;

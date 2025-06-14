@@ -10,10 +10,10 @@ import net.minecraft.world.dimension.DimensionTypes;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.util.Uuids;
-//? } else {
+//?} else {
 /*import net.minecraft.nbt.NbtCompound;
 import org.jetbrains.annotations.NotNull;
-*///? }
+*///?}
 
 import java.util.UUID;
 
