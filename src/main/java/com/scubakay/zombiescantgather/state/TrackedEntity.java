@@ -1,67 +1,78 @@
 package com.scubakay.zombiescantgather.state;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.dimension.DimensionTypes;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
 public class TrackedEntity {
-    public UUID uuid;
-    public String name;
-    public String item;
-    public BlockPos pos;
-    public String dimension;
-    public int count;
+    public static final Codec<TrackedEntity> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Uuids.CODEC.fieldOf("uuid").forGetter(TrackedEntity::getUuid),
+            Codec.STRING.fieldOf("name").forGetter(TrackedEntity::getName),
+            Codec.STRING.fieldOf("item").forGetter(TrackedEntity::getItem),
+            BlockPos.CODEC.fieldOf("pos").forGetter(TrackedEntity::getPos),
+            Codec.STRING.fieldOf("dimension").forGetter(TrackedEntity::getDimension),
+            Codec.INT.fieldOf("count").forGetter(TrackedEntity::getCount)
+            ).apply(instance, TrackedEntity::new)
+    );
+
+    private final UUID uuid;
+    private final String name;
+    private final String item;
+    private final BlockPos pos;
+    private final String dimension;
+    private int count;
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getItem() {
+        return item;
+    }
+
+    public BlockPos getPos() {
+        return pos;
+    }
+
+    public String getDimension() {
+        return dimension;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void addCount(int i) {
+        count += i;
+    }
 
     public TrackedEntity(MobEntity entity) {
         uuid = entity.getUuid();
         name = entity.getName().getString();
-        item = entity.getHandItems().iterator().next().getItem().asItem().toString();
+        item = entity.getMainHandStack().getItem().asItem().toString();
         pos = entity.getBlockPos();
         dimension = entity.getWorld().getDimensionEntry().getIdAsString();
         count = 1;
     }
 
-    public TrackedEntity(NbtCompound nbt) {
-        this.uuid = nbt.getUuid(TrackerKeys.UUID);
-        this.name = nbt.getString(TrackerKeys.NAME);
-        this.item = nbt.getString(TrackerKeys.ITEM);
-        this.pos = nbtToBlockPos(nbt);
-        this.dimension = nbt.getString(TrackerKeys.DIMENSION);
-        this.count = nbt.getInt(TrackerKeys.COUNT);
-    }
-
-    private @NotNull BlockPos nbtToBlockPos(NbtCompound nbt) {
-        NbtCompound posNbt = nbt.getCompound(TrackerKeys.POS);
-        return new BlockPos(
-            posNbt.getInt("x"),
-            posNbt.getInt("y"),
-            posNbt.getInt("z")
-        );
-    }
-
-    public NbtCompound toNbt() {
-        NbtCompound nbt = new NbtCompound();
-        nbt.putUuid(TrackerKeys.UUID, uuid);
-        nbt.putString(TrackerKeys.NAME, name);
-        nbt.putString(TrackerKeys.ITEM, item);
-        nbt.put(TrackerKeys.POS, blockPosToNbt());
-        nbt.putString(TrackerKeys.DIMENSION, dimension);
-        nbt.putInt(TrackerKeys.COUNT, count);
-        return nbt;
-    }
-
-    private @NotNull NbtCompound blockPosToNbt() {
-        NbtCompound posNbt = new NbtCompound();
-        posNbt.putInt("x", pos.getX());
-        posNbt.putInt("y", pos.getY());
-        posNbt.putInt("z", pos.getZ());
-        return posNbt;
+    public TrackedEntity(UUID uuid, String name, String item, BlockPos pos, String dimension, int count) {
+        this.uuid = uuid;
+        this.name = name;
+        this.item = item;
+        this.pos = pos;
+        this.dimension = dimension;
+        this.count = count;
     }
 
     public boolean isInDimensionType(Identifier type) {
@@ -90,14 +101,5 @@ public class TrackedEntity {
         } else {
             return Colors.WHITE;
         }
-    }
-
-    public static class TrackerKeys {
-        public static final String UUID = "Uuid";
-        public static final String NAME = "Name";
-        public static final String ITEM = "Item";
-        public static final String POS = "Position";
-        public static final String COUNT = "Count";
-        public static final String DIMENSION = "Dimension";
     }
 }

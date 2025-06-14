@@ -69,10 +69,10 @@ public class TrackerCommand extends RootCommand {
     public static int list(CommandContext<ServerCommandSource> context, int currentPage) {
         List<TrackedEntity> tracker = EntityTracker
                 .getServerState(context.getSource().getServer())
-                .getTrackedEntities()
+                .get()
                 .values()
                 .stream()
-                .sorted(Comparator.comparingInt(x -> -x.count))
+                .sorted(Comparator.comparingInt(x -> -x.getCount()))
                 .toList();
 
         if (tracker.isEmpty()) {
@@ -100,19 +100,18 @@ public class TrackerCommand extends RootCommand {
     public static int teleport(CommandContext<ServerCommandSource> context, UUID uuid) {
         if (context.getSource().isExecutedByPlayer()) {
             // Get entity pos and world
-            HashMap<UUID, TrackedEntity> tracker = EntityTracker.getServerState(context.getSource().getServer()).getTrackedEntities();
-            TrackedEntity entity = tracker.get(uuid);
+            TrackedEntity entity = EntityTracker.getServerState(context.getSource().getServer()).get(uuid);
             if (entity == null) {
                 CommandUtil.reply(context, Text.literal("Can't teleport: entity removed from tracker").withColor(Colors.RED));
                 return 0;
             }
-            RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(entity.dimension));
+            RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(entity.getDimension()));
             ServerWorld world = context.getSource().getServer().getWorld(key);
 
             // Get player and teleport
             ServerPlayerEntity player = context.getSource().getPlayer();
             assert player != null;
-            TeleportTarget target = new TeleportTarget(world, entity.pos.toBottomCenterPos(), Vec3d.ZERO, player.getYaw(), player.getPitch(), TeleportTarget.NO_OP);
+            TeleportTarget target = new TeleportTarget(world, entity.getPos().toBottomCenterPos(), Vec3d.ZERO, player.getYaw(), player.getPitch(), TeleportTarget.NO_OP);
             player.teleportTo(target);
         } else {
             CommandUtil.reply(context, Text.literal("Only players can run the teleport command"));
@@ -122,24 +121,29 @@ public class TrackerCommand extends RootCommand {
 
     public static Text getTrackerRow(ServerCommandSource context, TrackedEntity entity) {
         return getTpButton(context, entity).copy()
-                .append(Text.literal(String.format("(%dx) ", entity.count))
+                .append(Text.literal(String.format("(%dx) ", entity.getCount()))
                         .styled(style -> style
-                                .withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1"))
+                                //? >=1.21.5 {
+                                .withClickEvent(new ClickEvent.ChangePage(1))
+                                .withHoverEvent(new HoverEvent.ShowText(getTrackerRowToolTip(entity)))
+                                //? } else {
+                                /*.withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1"))
                                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTrackerRowToolTip(entity)))
+                                *///? }
                                 .withFormatting(Formatting.GRAY))
-                        .append(Text.literal(entity.name) // <name>
+                        .append(Text.literal(entity.getName()) // <name>
                                 .styled(style -> style
                                         .withFormatting(Formatting.WHITE)))
                         .append(Text.literal(" is holding ")
                                 .styled(style -> style
                                         .withFormatting(Formatting.GRAY)))
-                        .append(Text.literal(entity.item)
+                        .append(Text.literal(entity.getItem())
                                 .styled(style -> style
                                         .withFormatting(Formatting.WHITE))));
     }
 
     private static Text getTrackerRowToolTip(TrackedEntity entity) {
-        return Text.literal(entity.name)
+        return Text.literal(entity.getName())
                 .styled(style -> style
                         .withFormatting(Formatting.BOLD)
                         .withColor(entity.getDimensionColor())).append(getTooltipDescription(entity));
@@ -152,12 +156,17 @@ public class TrackerCommand extends RootCommand {
         return Text.literal("[TP] ")
                 .styled(style -> style
                         .withColor(entity.getDimensionColor())
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getTpCommand(entity)))
+                        //? >=1.21.5 {
+                        .withClickEvent(new ClickEvent.RunCommand(getTpCommand(entity)))
+                        .withHoverEvent(new HoverEvent.ShowText(getTpButtonToolTIp(entity))));
+        //? } else {
+                        /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getTpCommand(entity)))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTpButtonToolTIp(entity))));
+                        *///? }
     }
 
     private static Text getTpButtonToolTIp(TrackedEntity entity) {
-        return Text.literal(entity.name)
+        return Text.literal(entity.getName())
                 .styled(style -> style
                         .withColor(entity.getDimensionColor())
                         .withFormatting(Formatting.BOLD)).append(getTooltipDescription(entity))
@@ -182,7 +191,7 @@ public class TrackerCommand extends RootCommand {
                         .styled(style -> style
                                 .withFormatting(Formatting.GRAY)
                                 .withBold(false)))
-                .append(Text.literal(entity.pos.toShortString())
+                .append(Text.literal(entity.getPos().toShortString())
                         .styled(style -> style
                                 .withFormatting(Formatting.WHITE)
                                 .withFormatting(Formatting.ITALIC)
@@ -191,7 +200,7 @@ public class TrackerCommand extends RootCommand {
                         .styled(style -> style
                                 .withFormatting(Formatting.GRAY)
                                 .withBold(false)))
-                .append(Text.literal(entity.item)
+                .append(Text.literal(entity.getItem())
                         .styled(style -> style
                                 .withFormatting(Formatting.WHITE)
                                 .withFormatting(Formatting.ITALIC)
@@ -200,7 +209,7 @@ public class TrackerCommand extends RootCommand {
                         .styled(style -> style
                                 .withFormatting(Formatting.GRAY)
                                 .withBold(false)))
-                .append(Text.literal(String.format("%d times", entity.count))
+                .append(Text.literal(String.format("%d times", entity.getCount()))
                         .styled(style -> style
                                 .withFormatting(Formatting.WHITE)
                                 .withFormatting(Formatting.ITALIC)
@@ -231,24 +240,44 @@ public class TrackerCommand extends RootCommand {
         Text navigation = Text.empty();
         if (pagination.currentPage > 2) {
             navigation = navigation.copy().append(Text.literal("<< ").styled(style -> style.withColor(Colors.GREEN)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(0)))
-                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("First page")))));
+                    //? >=1.21.5 {
+                    .withClickEvent(new ClickEvent.RunCommand(getPageCommand(0)))
+                    .withHoverEvent(new HoverEvent.ShowText(Text.literal("First page")))));
+            //? } else {
+                    /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getTpCommand(entity)))
+                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTpButtonToolTIp(entity))));
+                    *///? }
         }
         if (pagination.currentPage > 1) {
             navigation = navigation.copy().append(Text.literal("< ").styled(style -> style.withColor(Colors.GREEN)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.previousPage)))
+                    //? >=1.21.5 {
+                    .withClickEvent(new ClickEvent.RunCommand(getPageCommand(pagination.previousPage)))
+                    .withHoverEvent(new HoverEvent.ShowText(Text.literal("Previous page")))));
+            //? } else {
+                    /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.previousPage)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Previous page")))));
+                    *///? }
         }
         navigation = navigation.copy().append(Text.literal(pagination.currentPage + "/" + pagination.lastPage));
         if (pagination.currentPage < pagination.lastPage) {
             navigation = navigation.copy().append(Text.literal(" >").styled(style -> style.withColor(Colors.GREEN)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.nextPage)))
+                    //? >=1.21.5 {
+                    .withClickEvent(new ClickEvent.RunCommand(getPageCommand(pagination.nextPage)))
+                    .withHoverEvent(new HoverEvent.ShowText(Text.literal("Next page")))));
+            //? } else {
+                    /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.nextPage)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Next page")))));
+                    *///? }
         }
         if (pagination.currentPage + 1 < pagination.lastPage) {
             navigation = navigation.copy().append(Text.literal(" >>").styled(style -> style.withColor(Colors.GREEN)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.lastPage)))
+                    //? >=1.21.5 {
+                    .withClickEvent(new ClickEvent.RunCommand(getPageCommand(pagination.lastPage)))
+                    .withHoverEvent(new HoverEvent.ShowText(Text.literal("Last page")))));
+            //? } else {
+                    /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(pagination.lastPage)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Last page")))));
+                    *///? }
         }
         return navigation;
     }
@@ -258,6 +287,6 @@ public class TrackerCommand extends RootCommand {
     }
 
     private static @NotNull String getTpCommand(TrackedEntity entity) {
-        return String.format("/%s %s %s %s", ROOT_COMMAND, TRACKER_COMMAND, TRACKER_TELEPORT_COMMAND, entity.uuid);
+        return String.format("/%s %s %s %s", ROOT_COMMAND, TRACKER_COMMAND, TRACKER_TELEPORT_COMMAND, entity.getUuid());
     }
 }

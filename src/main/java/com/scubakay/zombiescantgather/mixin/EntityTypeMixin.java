@@ -15,9 +15,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.function.Function;
-//? if >= 1.21.2 {
+//? >= 1.21.2 {
 import net.minecraft.entity.SpawnReason;
-//?}
+//? }
 
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 
@@ -27,11 +27,15 @@ public class EntityTypeMixin {
     private static void zombiesCantGather$checkForbiddenItems(NbtCompound nbtCompound, World world, /*? >= 1.21.2 {*/SpawnReason spawnReason,/*?}*/ Function<Entity, Entity> function, Entity entity, CallbackInfoReturnable<Entity> cir) {
         if (MOD_CONFIG.enableTracker.get() && world instanceof ServerWorld && entity instanceof MobEntity mobEntity) {
             if (mobEntity.getCustomName() == null || MOD_CONFIG.trackCustomNamedMobs.get()) {
-                ItemStack item = mobEntity.getHandItems().iterator().next();
+                //? >= 1.21.5 {
+                ItemStack item = mobEntity.getMainHandStack();
+                //? } else {
+                /*ItemStack item = mobEntity.getHandItems().iterator().next();
+                *///? }
                 if (entity instanceof ZombieEntity zombie && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
-                    EntityTracker.getServerState(world.getServer()).trackEntity(zombie);
+                    EntityTracker.getServerState(world.getServer()).track(zombie);
                 } else if (entity instanceof PiglinEntity piglin && MOD_CONFIG.piglinsCantGather.get().contains(item.getItem().toString())) {
-                    EntityTracker.getServerState(world.getServer()).trackEntity(piglin);
+                    EntityTracker.getServerState(world.getServer()).track(piglin);
                 }
             }
         }
