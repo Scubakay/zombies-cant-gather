@@ -12,6 +12,7 @@ class ModData {
     val id = property("mod.id").toString()
     val name = property("mod.name").toString()
     val version = property("mod.version").toString()
+    val title = property("mod.mc_title").toString()
     val group = property("mod.group").toString()
 }
 
@@ -23,8 +24,9 @@ val mod = ModData()
 val deps = ModDependencies()
 val mcVersion = stonecutter.current.version
 val mcDep = property("mod.mc_dep").toString()
+val publish = property("mod.publish")
 
-version = "${mod.version}+$mcVersion"
+version = "${mod.version}+${mod.title}"
 group = mod.group
 base { archivesName.set(mod.id) }
 
@@ -73,6 +75,7 @@ dependencies {
     implementation("de.maxhenkel.configbuilder:configbuilder:${deps["maxhenkel_configbuilder"]}")
     include("de.maxhenkel.configbuilder:configbuilder:${deps["maxhenkel_configbuilder"]}")
     modImplementation("me.lucko:fabric-permissions-api:${deps["fabric_permission_api"]}")
+    modImplementation("maven.modrinth:luckperms:${deps["luckperms"]}")
 }
 
 loom {
@@ -83,7 +86,7 @@ loom {
     }
 
     runConfigs.all {
-        ideConfigGenerated(true)
+        ideConfigGenerated(false)
         vmArgs("-Dmixin.debug.export=true")
         runDir = "../../run"
     }
@@ -131,33 +134,55 @@ tasks.register<Copy>("buildAndCollect") {
     dependsOn("build")
 }
 
-publishMods {
-    fun versionList(prop: String) = findProperty(prop)?.toString()
-        ?.split("\\s+".toRegex())
-        ?.map { it.trim() }
-        ?: emptyList()
-    val versions = versionList("mod.mc_targets")
+if (stonecutter.current.isActive) {
+    rootProject.tasks.register("Run Active Server") {
+        group = "stonecutter"
+        dependsOn(tasks.named("runServer"))
+    }
 
-    file = tasks.remapJar.get().archiveFile
-    additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
-    displayName = "${mod.name} ${mod.version} for $mcVersion"
-    version = mod.version
-    changelog = rootProject.file("CHANGELOG.md").readText()
-    type = ALPHA
-    modLoaders.add("fabric")
-
-    dryRun = providers.environmentVariable("MODRINTH_TOKEN")
-        .getOrNull() == null
-    //|| providers.environmentVariable("CURSEFORGE_TOKEN").getOrNull() == null
-
-    modrinth {
-        projectId = property("publish.modrinth").toString()
-        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
-        minecraftVersions.addAll(versions)
-        requires {
-            slug = "fabric-api"
+    loom {
+        runs {
+            create("Run Active Server") {
+                server()
+                ideConfigGenerated(true)
+                runDir = "../../run"
+                name = "Run Active Server"
+                vmArgs("-Dmixin.debug.export=true")
+                property("fabric.mcVersion", mcVersion)
+            }
         }
     }
+}
+
+if (publish == true || publish == "true") {
+    publishMods {
+        fun versionList(prop: String) = findProperty(prop)?.toString()
+            ?.split("\\s+".toRegex())
+            ?.map { it.trim() }
+            ?: emptyList()
+
+        val versions = versionList("mod.mc_targets")
+
+        file = tasks.remapJar.get().archiveFile
+        additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
+        displayName = "${mod.name} ${mod.version} for ${mod.title}"
+        version = mod.version
+        changelog = rootProject.file("CHANGELOG.md").readText()
+        type = ALPHA
+        modLoaders.add("fabric")
+
+        dryRun = providers.environmentVariable("MODRINTH_TOKEN")
+            .getOrNull() == null
+        //|| providers.environmentVariable("CURSEFORGE_TOKEN").getOrNull() == null
+
+        modrinth {
+            projectId = property("publish.modrinth").toString()
+            accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+            minecraftVersions.addAll(versions)
+            requires {
+                slug = "fabric-api"
+            }
+        }
 
 //    curseforge {
 //        projectId = property("publish.curseforge").toString()
@@ -167,26 +192,31 @@ publishMods {
 //            slug = "fabric-api"
 //        }
 //    }
-}
+    }
 
-publishing {
-    repositories {
-        maven("...") {
-            name = "..."
-            credentials(PasswordCredentials::class.java)
-            authentication {
-                create<BasicAuthentication>("basic")
+    publishing {
+        repositories {
+            maven("...") {
+                name = "..."
+                credentials(PasswordCredentials::class.java)
+                authentication {
+                    create<BasicAuthentication>("basic")
+                }
+            }
+        }
+
+        publications {
+            create<MavenPublication>("mavenJava") {
+                groupId = "${property("mod.group")}.${mod.id}"
+                artifactId = mod.version
+                version = mcVersion
+
+                from(components["java"])
             }
         }
     }
-
-    publications {
-        create<MavenPublication>("mavenJava") {
-            groupId = "${property("mod.group")}.${mod.id}"
-            artifactId = mod.version
-            version = mcVersion
-
-            from(components["java"])
-        }
-    }
+} else {
+    logger.lifecycle("Skipping publishing ${projectDir.name}: 'mod.publish' property is false.")
 }
+
+// Good job. You just added a comment

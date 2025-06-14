@@ -16,7 +16,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 import static com.scubakay.zombiescantgather.util.CommandUtil.FANCY_MOD_NAME;
 
-public class PiglinsCantGatherCommand extends RootCommand {
+public class PiglinsCantGatherCommand {
     private static final SuggestionProvider<ServerCommandSource> LISTED_ITEM_SUGGESTIONS = (context, builder) -> {
         for (String s : MOD_CONFIG.piglinsCantGather.get()) builder.suggest(s);
         return builder.buildFuture();
@@ -26,7 +26,7 @@ public class PiglinsCantGatherCommand extends RootCommand {
         LiteralCommandNode<ServerCommandSource> zombie = CommandManager
                 .literal("piglin")
                 .build();
-        getRoot().addChild(zombie);
+        RootCommand.getRoot().addChild(zombie);
 
         zombie.addChild(CommandUtil.getAddNode(
                 registryAccess,

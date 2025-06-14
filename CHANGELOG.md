@@ -1,2 +1,4 @@
-- #13 Suggest items from the list in remove commands
-- #21 Add reset commands for both zombie and piglin items
+- #19 Alert console when entity with blacklisted item is loaded
+- #20 Add command `/zombiescantgather tracked` which lists entities that were loaded holding blacklisted items
+- #20 Add command `/zombiescantgather tracked reset` which resets the entity list
+- #20 Now has a separate `1.21.5` version

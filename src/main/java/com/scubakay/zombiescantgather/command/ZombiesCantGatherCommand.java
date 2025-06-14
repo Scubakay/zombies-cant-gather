@@ -14,8 +14,9 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
+import static com.scubakay.zombiescantgather.command.PermissionManager.*;
 
-public class ZombiesCantGatherCommand extends RootCommand {
+public class ZombiesCantGatherCommand {
     private static final SuggestionProvider<ServerCommandSource> LISTED_ITEM_SUGGESTIONS = (context, builder) -> {
         for (String s : MOD_CONFIG.zombiesCantGather.get()) builder.suggest(s);
         return builder.buildFuture();
@@ -24,8 +25,9 @@ public class ZombiesCantGatherCommand extends RootCommand {
     public static void register(CommandDispatcher<ServerCommandSource> ignoredDispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
         LiteralCommandNode<ServerCommandSource> zombie = CommandManager
                 .literal("zombie")
+                .requires(ctx -> hasPermission(ctx, BLACKLIST_PERMISSION))
                 .build();
-        getRoot().addChild(zombie);
+        RootCommand.getRoot().addChild(zombie);
 
         zombie.addChild(CommandUtil.getAddNode(
                 registryAccess,

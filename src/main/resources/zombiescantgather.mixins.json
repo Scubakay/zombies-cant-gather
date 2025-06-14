@@ -3,8 +3,10 @@
   "package": "com.scubakay.zombiescantgather.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "ZombieEntityMixin",
-    "PiglinEntityMixin"
+    "EntityMixin",
+    "EntityTypeMixin",
+    "PiglinEntityMixin",
+    "ZombieEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

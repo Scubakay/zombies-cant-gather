@@ -2,6 +2,7 @@ package com.scubakay.zombiescantgather;
 
 import com.scubakay.zombiescantgather.command.PiglinsCantGatherCommand;
 import com.scubakay.zombiescantgather.command.RootCommand;
+import com.scubakay.zombiescantgather.command.TrackerCommand;
 import com.scubakay.zombiescantgather.command.ZombiesCantGatherCommand;
 import com.scubakay.zombiescantgather.config.ModConfig;
 import de.maxhenkel.configbuilder.ConfigBuilder;
@@ -19,6 +20,10 @@ public class ZombiesCantGather implements ModInitializer {
 
     public static ModConfig MOD_CONFIG;
 
+    public static String getSaveKey(String namespace) {
+        return "zombiescantgather_" + namespace;
+    }
+
     @Override
     public void onInitialize() {
         MOD_CONFIG = ConfigBuilder.builder(ModConfig::new)
@@ -30,6 +35,9 @@ public class ZombiesCantGather implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(RootCommand::register);
         CommandRegistrationCallback.EVENT.register(ZombiesCantGatherCommand::register);
         CommandRegistrationCallback.EVENT.register(PiglinsCantGatherCommand::register);
+        if (MOD_CONFIG.enableTracker.get()) {
+            CommandRegistrationCallback.EVENT.register(TrackerCommand::register);
+        }
     }
 
     public Path getConfigDirectory() {
