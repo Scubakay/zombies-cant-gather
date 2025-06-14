@@ -73,6 +73,7 @@ dependencies {
     implementation("de.maxhenkel.configbuilder:configbuilder:${deps["maxhenkel_configbuilder"]}")
     include("de.maxhenkel.configbuilder:configbuilder:${deps["maxhenkel_configbuilder"]}")
     modImplementation("me.lucko:fabric-permissions-api:${deps["fabric_permission_api"]}")
+    modImplementation("maven.modrinth:luckperms:${deps["luckperms"]}")
 }
 
 loom {
