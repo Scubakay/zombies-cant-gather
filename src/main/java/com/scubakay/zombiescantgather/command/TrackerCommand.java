@@ -97,6 +97,10 @@ public class TrackerCommand extends RootCommand {
             // Get entity pos and world
             HashMap<UUID, TrackedEntity> tracker = EntityTracker.getServerState(context.getSource().getServer()).getTrackedEntities();
             TrackedEntity entity = tracker.get(uuid);
+            if (entity == null) {
+                CommandUtil.reply(context, Text.literal("Can't teleport: entity removed from tracker").withColor(Colors.RED));
+                return 0;
+            }
             RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(entity.dimension));
             ServerWorld world = context.getSource().getServer().getWorld(key);
 
