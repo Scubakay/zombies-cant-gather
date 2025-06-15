@@ -5,6 +5,8 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
+
 public class PermissionManager {
     @SuppressWarnings("unused")
     public static final String ROOT_PERMISSION = "zombiescantgather";
@@ -20,17 +22,15 @@ public class PermissionManager {
     public static final String TRACKER_RESET_PERMISSION = TRACKER_PERMISSION + ".reset";
     public static final String TRACKER_TELEPORT_PERMISSION = TRACKER_PERMISSION + ".teleport";
 
-    private static final int DEFAULT_PERMISSION_LEVEL = 4;
-
     private static final boolean fabricPermissionsApi = FabricLoader.getInstance().isModLoaded("fabric-permissions-api-v0");
 
     public static boolean hasPermission(ServerPlayerEntity player, String permission) {
-        if (player.hasPermissionLevel(DEFAULT_PERMISSION_LEVEL)) return true;
+        if (player.hasPermissionLevel(MOD_CONFIG.permissionLevel.get())) return true;
         return fabricPermissionsApi && Permissions.check(player, permission);
     }
 
     public static boolean hasPermission(ServerCommandSource source, String permission) {
-        if (source.hasPermissionLevel(DEFAULT_PERMISSION_LEVEL)) return true;
+        if (source.hasPermissionLevel(MOD_CONFIG.permissionLevel.get())) return true;
         return fabricPermissionsApi && Permissions.check(source, permission);
     }
 }
