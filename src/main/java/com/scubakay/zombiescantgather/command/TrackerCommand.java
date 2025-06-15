@@ -43,7 +43,7 @@ public class TrackerCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
         LiteralCommandNode<ServerCommandSource> tracker = CommandManager
                 .literal(TRACKER_COMMAND)
-                .requires(ctx -> (MOD_CONFIG.enableTracker.get() || hasPermission(ctx, CONFIGURE_MOD_PERMISSION) && hasPermission(ctx, TRACKER_PERMISSION)))
+                .requires(ctx -> (MOD_CONFIG.enableTracker.get() || hasPermission(ctx, CONFIGURE_MOD_PERMISSION)) && hasPermission(ctx, TRACKER_PERMISSION))
                 .executes(ctx -> list(ctx, 1))
                 .then(CommandManager
                         .argument("page", IntegerArgumentType.integer(1))
@@ -135,12 +135,17 @@ public class TrackerCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int toggle(CommandContext<ServerCommandSource> ignoredContext) {
+    private static int toggle(CommandContext<ServerCommandSource> context) {
         MOD_CONFIG.enableTracker.set(!MOD_CONFIG.enableTracker.get()).save();
+        if (context.getSource().isExecutedByPlayer()) {
+            ServerPlayerEntity player = context.getSource().getPlayer();
+            context.getSource().getServer().getPlayerManager().sendCommandTree(player);
+        }
+
         if (MOD_CONFIG.enableTracker.get()) {
-            CommandUtil.reply(ignoredContext, "Tracker §aenabled§f:\nRe-enter the server/world to reload command completion.");
+            CommandUtil.reply(context, "Tracker §aenabled");
         } else {
-            CommandUtil.reply(ignoredContext, "Tracker §cdisabled§f:\nRe-enter the server/world to reload command completion.");
+            CommandUtil.reply(context, "Tracker §cdisabled");
         }
         return Command.SINGLE_SUCCESS;
     }
