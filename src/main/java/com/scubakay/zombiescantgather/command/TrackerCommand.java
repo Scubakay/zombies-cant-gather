@@ -64,7 +64,6 @@ public class TrackerCommand {
                         .executes(ctx -> teleport(ctx, UuidArgumentType.getUuid(ctx, "uuid"))))
                 .build();
         tracker.addChild(teleport);
-
     }
 
     public static int list(CommandContext<ServerCommandSource> context, int currentPage) {

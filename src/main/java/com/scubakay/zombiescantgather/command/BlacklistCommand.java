@@ -14,7 +14,6 @@ import net.minecraft.command.argument.ItemStackArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.CommandManager.RegistrationEnvironment;
 import net.minecraft.server.command.ServerCommandSource;
-import org.apache.commons.lang3.StringUtils;
 
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
@@ -24,6 +23,14 @@ public class BlacklistCommand {
     private static final String ITEM_ARGUMENT = "item";
     private static final String ZOMBIE = "zombie";
     private static final String PIGLIN = "piglin";
+
+    private static final String ADDED_REPLY = "%s§7 can't gather §f%s§7";
+    private static final String REMOVED_REPLY = "%s§7 can gather §f%s§7 again";
+    private static final String DUPLICATE_REPLY = "%s§7 is already on the §f%s§7 blacklist";
+    private static final String NOT_FOUND_REPLY = "%s§7 not found in §f%s§7 blacklist";
+    private static final String INVALID_ENTITY_REPLY = "%s blacklist is not supported";
+    private static final String RESET_ITEMS_REPLY = "§7Reset §f%s§7 items";
+    private static final String BLACKLIST_HEADER_REPLY = "%s§7 can't pick up these items:";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registry, RegistrationEnvironment ignoredEnv) {
         ArgumentCommandNode<ServerCommandSource, String> entityNode = getEntityNode(); // zcg <entity>
@@ -40,19 +47,19 @@ public class BlacklistCommand {
             switch(type) {
                 case PIGLIN:
                     MOD_CONFIG.addPiglinItem(item);
-                    CommandUtil.reply(context, StringUtils.capitalize(String.format("%s can't gather §f%s", type, item)));
+                    CommandUtil.reply(context, ADDED_REPLY, type, item);
                     break;
                 case ZOMBIE:
                     MOD_CONFIG.addZombieItem(item);
-                    CommandUtil.reply(context, StringUtils.capitalize(String.format("%s can't gather §f%s", type, item)));
+                    CommandUtil.reply(context, ADDED_REPLY, type, item);
                     break;
                 default:
-                    CommandUtil.reply(context, String.format("Invalid entity type: §f%s", type));
+                    CommandUtil.reply(context, INVALID_ENTITY_REPLY, type);
                     break;
             }
             return Command.SINGLE_SUCCESS;
         } catch (IllegalArgumentException ex) {
-            CommandUtil.reply(context, StringUtils.capitalize(String.format("%s already can't gather §f%s", type, item)));
+            CommandUtil.reply(context, DUPLICATE_REPLY, item, type);
             return 0;
         }
     }
@@ -63,19 +70,19 @@ public class BlacklistCommand {
             switch(type) {
                 case PIGLIN:
                     MOD_CONFIG.removePiglinItem(item);
-                    CommandUtil.reply(context, StringUtils.capitalize(String.format("%s can gather §f%s§7 again", type, item)));
+                    CommandUtil.reply(context, REMOVED_REPLY, type, item);
                     break;
                 case ZOMBIE:
                     MOD_CONFIG.removeZombieItem(item);
-                    CommandUtil.reply(context, StringUtils.capitalize(String.format("%s can gather §f%s§7 again", type, item)));
+                    CommandUtil.reply(context, REMOVED_REPLY, type, item);
                     break;
                 default:
-                    CommandUtil.reply(context, String.format("Invalid entity type: §f%s", type));
+                    CommandUtil.reply(context, INVALID_ENTITY_REPLY, type);
                     break;
             }
             return Command.SINGLE_SUCCESS;
         } catch (IllegalArgumentException ex) {
-            CommandUtil.reply(context, StringUtils.capitalize(String.format("%s can already gather §f%s", type, item)));
+            CommandUtil.reply(context, NOT_FOUND_REPLY, item, type);
             return 0;
         }
     }
@@ -87,11 +94,11 @@ public class BlacklistCommand {
             default -> null;
         };
         if (items != null) {
-            CommandUtil.reply(context, StringUtils.capitalize(String.format("%s can't pick up these items:", type)));
-            items.forEach((item) -> CommandUtil.reply(context, "§f" + item));
+            CommandUtil.reply(context, BLACKLIST_HEADER_REPLY, type);
+            items.forEach((item) -> CommandUtil.reply(context, "- §f" + item));
             return Command.SINGLE_SUCCESS;
         } else {
-            CommandUtil.reply(context, String.format("Invalid entity type: §f%s", type));
+            CommandUtil.reply(context, INVALID_ENTITY_REPLY, type);
             return 0;
         }
     }
@@ -101,11 +108,11 @@ public class BlacklistCommand {
             case PIGLIN -> MOD_CONFIG.resetPiglinItems();
             case ZOMBIE -> MOD_CONFIG.resetZombieItems();
             default -> {
-                CommandUtil.reply(context, String.format("Invalid entity type: §f%s", type));
+                CommandUtil.reply(context, INVALID_ENTITY_REPLY, type);
                 return 0;
             }
         }
-        CommandUtil.reply(context, String.format("Reset %s items", type));
+        CommandUtil.reply(context, RESET_ITEMS_REPLY, type);
         return Command.SINGLE_SUCCESS;
     }
 
