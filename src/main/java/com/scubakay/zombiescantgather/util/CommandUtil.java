@@ -73,4 +73,11 @@ public class CommandUtil {
                 .executes(command)
                 .build();
     }
+
+    public static LiteralCommandNode<ServerCommandSource> getBlacklistNode(String type) {
+        return CommandManager
+                .literal(type)
+                .requires(ctx -> hasPermission(ctx, BLACKLIST_PERMISSION))
+                .build();
+    }
 }
