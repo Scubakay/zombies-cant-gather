@@ -4,13 +4,10 @@ import com.scubakay.zombiescantgather.command.RootCommand;
 import com.scubakay.zombiescantgather.command.TrackerCommand;
 import com.scubakay.zombiescantgather.command.BlacklistCommand;
 import com.scubakay.zombiescantgather.config.ModConfig;
-import de.maxhenkel.configbuilder.ConfigBuilder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
 
 public class ZombiesCantGather implements ModInitializer {
     public static final String MOD_ID = "zombiescantgather";
@@ -24,23 +21,9 @@ public class ZombiesCantGather implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        MOD_CONFIG = ConfigBuilder.builder(ModConfig::new)
-                .path(getConfigFile())
-                .strict(true)
-                .saveAfterBuild(true)
-                .build();
-
+        MOD_CONFIG = ModConfig.getModConfig();
         CommandRegistrationCallback.EVENT.register(RootCommand::register);
         CommandRegistrationCallback.EVENT.register(BlacklistCommand::register);
-        if (MOD_CONFIG.enableTracker.get()) {
-            CommandRegistrationCallback.EVENT.register(TrackerCommand::register);
-        }
-    }
-
-    public Path getConfigDirectory() {
-        return Path.of(".").resolve("config").resolve(MOD_ID);
-    }
-    public Path getConfigFile() {
-        return getConfigDirectory().resolve("mod.properties");
+        CommandRegistrationCallback.EVENT.register(TrackerCommand::register);
     }
 }

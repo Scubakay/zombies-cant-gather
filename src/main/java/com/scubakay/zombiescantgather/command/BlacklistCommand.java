@@ -2,7 +2,6 @@ package com.scubakay.zombiescantgather.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -19,10 +18,23 @@ import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
 
 public class BlacklistCommand {
-    private static final String TYPE_ARGUMENT = "type";
+    public enum Blacklist {
+        PIGLIN("piglin", "piglins"),
+        ZOMBIE("zombie", "piglins");
+
+        private final String name;
+        private final String plural;
+
+        Blacklist(final String name, final String plural) {
+            this.name = name;
+            this.plural = plural;
+        }
+
+        public String toString() { return name; }
+        public String toPlural() { return plural; }
+    }
+
     private static final String ITEM_ARGUMENT = "item";
-    private static final String ZOMBIE = "zombie";
-    private static final String PIGLIN = "piglin";
 
     private static final String ADDED_REPLY = "%s§7 can't gather §f%s§7";
     private static final String REMOVED_REPLY = "%s§7 can gather §f%s§7 again";
@@ -31,30 +43,32 @@ public class BlacklistCommand {
     private static final String INVALID_ENTITY_REPLY = "%s blacklist is not supported";
     private static final String RESET_ITEMS_REPLY = "§7Reset §f%s§7 items";
     private static final String BLACKLIST_HEADER_REPLY = "%s§7 can't pick up these items:";
+    private static final String BLACKLIST_ROW_REPLY = "- §f%s";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registry, RegistrationEnvironment ignoredEnv) {
-        ArgumentCommandNode<ServerCommandSource, String> entityNode = getEntityNode(); // zcg <entity>
-        RootCommand.getRoot(dispatcher).addChild(entityNode);
-
-        entityNode.addChild(getAddNode(registry)); // zcg <entity> add <item>
-        entityNode.addChild(getRemoveNode(registry)); // zcg <entity> remove <item>
-        entityNode.addChild(getResetNode()); // zcg <entity> reset
+        RootCommand.getRoot(dispatcher).addChild(getBlacklistNode(registry, Blacklist.PIGLIN));
+        RootCommand.getRoot(dispatcher).addChild(getBlacklistNode(registry, Blacklist.ZOMBIE));
     }
 
-    public static int add(CommandContext<ServerCommandSource> context, String type, ItemStackArgument itemStackArgument) {
+    private static LiteralCommandNode<ServerCommandSource> getBlacklistNode(CommandRegistryAccess registry, Blacklist blacklist) {
+        LiteralCommandNode<ServerCommandSource> piglinNode = getEntityNode(blacklist); // zcg <entity>
+        piglinNode.addChild(getAddNode(registry, blacklist)); // zcg <entity> add <item>
+        piglinNode.addChild(getRemoveNode(registry, blacklist)); // zcg <entity> remove <item>
+        piglinNode.addChild(getResetNode(blacklist)); // zcg <entity> reset
+        return piglinNode;
+    }
+
+    public static int add(CommandContext<ServerCommandSource> context, Blacklist type, ItemStackArgument itemStackArgument) {
         String item = itemStackArgument.getItem().toString();
         try {
             switch(type) {
                 case PIGLIN:
                     MOD_CONFIG.addPiglinItem(item);
-                    CommandUtil.reply(context, ADDED_REPLY, type, item);
+                    CommandUtil.reply(context, ADDED_REPLY, type.toPlural(), item);
                     break;
                 case ZOMBIE:
                     MOD_CONFIG.addZombieItem(item);
-                    CommandUtil.reply(context, ADDED_REPLY, type, item);
-                    break;
-                default:
-                    CommandUtil.reply(context, INVALID_ENTITY_REPLY, type);
+                    CommandUtil.reply(context, ADDED_REPLY, type.toPlural(), item);
                     break;
             }
             return Command.SINGLE_SUCCESS;
@@ -64,20 +78,17 @@ public class BlacklistCommand {
         }
     }
 
-    public static int remove(CommandContext<ServerCommandSource> context, String type, ItemStackArgument itemStackArgument) {
+    public static int remove(CommandContext<ServerCommandSource> context, Blacklist type, ItemStackArgument itemStackArgument) {
         String item = itemStackArgument.getItem().toString();
         try {
             switch(type) {
-                case PIGLIN:
+                case Blacklist.PIGLIN:
                     MOD_CONFIG.removePiglinItem(item);
-                    CommandUtil.reply(context, REMOVED_REPLY, type, item);
+                    CommandUtil.reply(context, REMOVED_REPLY, type.toPlural(), item);
                     break;
-                case ZOMBIE:
+                case Blacklist.ZOMBIE:
                     MOD_CONFIG.removeZombieItem(item);
-                    CommandUtil.reply(context, REMOVED_REPLY, type, item);
-                    break;
-                default:
-                    CommandUtil.reply(context, INVALID_ENTITY_REPLY, type);
+                    CommandUtil.reply(context, REMOVED_REPLY, type.toPlural(), item);
                     break;
             }
             return Command.SINGLE_SUCCESS;
@@ -87,15 +98,14 @@ public class BlacklistCommand {
         }
     }
 
-    public static int list(CommandContext<ServerCommandSource> context, String type) {
+    public static int list(CommandContext<ServerCommandSource> context, Blacklist type) {
         StringList items = switch (type) {
-            case PIGLIN -> MOD_CONFIG.zombiesCantGather.get();
-            case ZOMBIE -> MOD_CONFIG.piglinsCantGather.get();
-            default -> null;
+            case Blacklist.PIGLIN -> MOD_CONFIG.zombiesCantGather.get();
+            case Blacklist.ZOMBIE -> MOD_CONFIG.piglinsCantGather.get();
         };
         if (items != null) {
-            CommandUtil.reply(context, BLACKLIST_HEADER_REPLY, type);
-            items.forEach((item) -> CommandUtil.reply(context, "- §f" + item));
+            CommandUtil.reply(context, BLACKLIST_HEADER_REPLY, type.toPlural());
+            items.forEach((item) -> CommandUtil.reply(context, BLACKLIST_ROW_REPLY, item));
             return Command.SINGLE_SUCCESS;
         } else {
             CommandUtil.reply(context, INVALID_ENTITY_REPLY, type);
@@ -103,33 +113,24 @@ public class BlacklistCommand {
         }
     }
 
-    public static int reset(CommandContext<ServerCommandSource> context, String type) {
+    public static int reset(CommandContext<ServerCommandSource> context, Blacklist type) {
         switch (type) {
-            case PIGLIN -> MOD_CONFIG.resetPiglinItems();
-            case ZOMBIE -> MOD_CONFIG.resetZombieItems();
-            default -> {
-                CommandUtil.reply(context, INVALID_ENTITY_REPLY, type);
-                return 0;
-            }
+            case Blacklist.PIGLIN -> MOD_CONFIG.resetPiglinItems();
+            case Blacklist.ZOMBIE -> MOD_CONFIG.resetZombieItems();
         }
         CommandUtil.reply(context, RESET_ITEMS_REPLY, type);
         return Command.SINGLE_SUCCESS;
     }
 
-    private static ArgumentCommandNode<ServerCommandSource, String> getEntityNode() {
+    private static LiteralCommandNode<ServerCommandSource> getEntityNode(Blacklist entity) {
         return CommandManager
-                .argument(TYPE_ARGUMENT, StringArgumentType.word())
+                .literal(entity.toString())
                 .requires(ctx -> hasPermission(ctx, BLACKLIST_PERMISSION))
-                .suggests((context, builder) -> {
-                    builder.suggest(PIGLIN);
-                    builder.suggest(ZOMBIE);
-                    return builder.buildFuture();
-                })
-                .executes(ctx -> list(ctx, StringArgumentType.getString(ctx, TYPE_ARGUMENT)))
+                .executes(ctx -> list(ctx, entity))
                 .build();
     }
 
-    public static LiteralCommandNode<ServerCommandSource> getAddNode(CommandRegistryAccess registry) {
+    public static LiteralCommandNode<ServerCommandSource> getAddNode(CommandRegistryAccess registry, Blacklist entityType) {
         LiteralCommandNode<ServerCommandSource> addNode = CommandManager
                 .literal("add")
                 .requires(ctx -> PermissionManager.hasPermission(ctx, BLACKLIST_ADD_PERMISSION))
@@ -137,13 +138,13 @@ public class BlacklistCommand {
         ArgumentCommandNode<ServerCommandSource, ItemStackArgument> itemNode = CommandManager
                 .argument(ITEM_ARGUMENT, ItemStackArgumentType.itemStack(registry))
                 .requires(ctx -> hasPermission(ctx, BLACKLIST_ADD_PERMISSION))
-                .executes(ctx -> add(ctx, StringArgumentType.getString(ctx, TYPE_ARGUMENT), ItemStackArgumentType.getItemStackArgument(ctx, ITEM_ARGUMENT)))
+                .executes(ctx -> add(ctx, entityType, ItemStackArgumentType.getItemStackArgument(ctx, ITEM_ARGUMENT)))
                 .build();
         addNode.addChild(itemNode);
         return addNode;
     }
 
-    public static LiteralCommandNode<ServerCommandSource> getRemoveNode(CommandRegistryAccess registry) {
+    public static LiteralCommandNode<ServerCommandSource> getRemoveNode(CommandRegistryAccess registry, Blacklist entityType) {
         LiteralCommandNode<ServerCommandSource> removeNode = CommandManager
                 .literal("remove")
                 .requires(ctx -> PermissionManager.hasPermission(ctx, BLACKLIST_ADD_PERMISSION))
@@ -152,28 +153,27 @@ public class BlacklistCommand {
                 .argument(ITEM_ARGUMENT, ItemStackArgumentType.itemStack(registry))
                 .requires(ctx -> hasPermission(ctx, BLACKLIST_REMOVE_PERMISSION))
                 .suggests((context, builder) -> {
-                    final String type = StringArgumentType.getString(context, TYPE_ARGUMENT);
-                    switch (type) {
-                        case PIGLIN:
+                    switch (entityType) {
+                        case Blacklist.PIGLIN:
                             for (String s : MOD_CONFIG.zombiesCantGather.get()) builder.suggest(s);
                             break;
-                        case ZOMBIE:
+                        case Blacklist.ZOMBIE:
                             for (String s : MOD_CONFIG.piglinsCantGather.get()) builder.suggest(s);
                             break;
                     }
                     return builder.buildFuture();
                 })
-                .executes(ctx -> remove(ctx, StringArgumentType.getString(ctx, TYPE_ARGUMENT), ItemStackArgumentType.getItemStackArgument(ctx, ITEM_ARGUMENT)))
+                .executes(ctx -> remove(ctx, entityType, ItemStackArgumentType.getItemStackArgument(ctx, ITEM_ARGUMENT)))
                 .build();
         removeNode.addChild(itemNode);
         return removeNode;
     }
 
-    public static LiteralCommandNode<ServerCommandSource> getResetNode() {
+    public static LiteralCommandNode<ServerCommandSource> getResetNode(Blacklist entityType) {
         return CommandManager
                 .literal("reset")
                 .requires(ctx -> hasPermission(ctx, BLACKLIST_RESET_PERMISSION))
-                .executes(ctx -> reset(ctx, StringArgumentType.getString(ctx, TYPE_ARGUMENT)))
+                .executes(ctx -> reset(ctx, entityType))
                 .build();
     }
 }
