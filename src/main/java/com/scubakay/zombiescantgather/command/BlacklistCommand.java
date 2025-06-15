@@ -32,8 +32,6 @@ public class BlacklistCommand {
         entityNode.addChild(getAddNode(registry)); // zcg <entity> add <item>
         entityNode.addChild(getRemoveNode(registry)); // zcg <entity> remove <item>
         entityNode.addChild(getResetNode()); // zcg <entity> reset
-
-        dispatcher.getRoot().addChild(entityNode);
     }
 
     public static int add(CommandContext<ServerCommandSource> context, String type, ItemStackArgument itemStackArgument) {
