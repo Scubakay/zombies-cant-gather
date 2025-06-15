@@ -23,24 +23,22 @@ public class PiglinsCantGatherCommand {
     };
 
     public static void register(CommandDispatcher<ServerCommandSource> ignoredDispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
-        LiteralCommandNode<ServerCommandSource> zombie = CommandManager
-                .literal("piglin")
-                .build();
-        RootCommand.getRoot().addChild(zombie);
+        LiteralCommandNode<ServerCommandSource> piglin = CommandUtil.getBlacklistNode("piglin");
+        RootCommand.getRoot().addChild(piglin);
 
-        zombie.addChild(CommandUtil.getAddNode(
+        piglin.addChild(CommandUtil.getAddNode(
                 registryAccess,
                 ctx -> add(ctx, ItemStackArgumentType.getItemStackArgument(ctx, "item"))
         ));
 
-        zombie.addChild(CommandUtil.getRemoveNode(
+        piglin.addChild(CommandUtil.getRemoveNode(
                 registryAccess,
                 LISTED_ITEM_SUGGESTIONS,
                 ctx -> remove(ctx, ItemStackArgumentType.getItemStackArgument(ctx, "listedItem"))
         ));
 
-        zombie.addChild(CommandUtil.getListNode(PiglinsCantGatherCommand::list));
-        zombie.addChild(CommandUtil.getResetNode(PiglinsCantGatherCommand::reset));
+        piglin.addChild(CommandUtil.getListNode(PiglinsCantGatherCommand::list));
+        piglin.addChild(CommandUtil.getResetNode(PiglinsCantGatherCommand::reset));
     }
 
     public static int add(CommandContext<ServerCommandSource> context, ItemStackArgument itemStackArgument) {
