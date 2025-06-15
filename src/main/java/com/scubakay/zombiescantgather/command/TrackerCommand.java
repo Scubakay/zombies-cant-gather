@@ -135,17 +135,17 @@ public class TrackerCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int toggle(CommandContext<ServerCommandSource> ignoredContext) {
+    private static int toggle(CommandContext<ServerCommandSource> context) {
         MOD_CONFIG.enableTracker.set(!MOD_CONFIG.enableTracker.get()).save();
-        if (ignoredContext.getSource().isExecutedByPlayer()) {
-            ServerPlayerEntity player = ignoredContext.getSource().getPlayer();
-            ignoredContext.getSource().getServer().getPlayerManager().sendCommandTree(player);
+        if (context.getSource().isExecutedByPlayer()) {
+            ServerPlayerEntity player = context.getSource().getPlayer();
+            context.getSource().getServer().getPlayerManager().sendCommandTree(player);
         }
 
         if (MOD_CONFIG.enableTracker.get()) {
-            CommandUtil.reply(ignoredContext, "Tracker §aenabled");
+            CommandUtil.reply(context, "Tracker §aenabled");
         } else {
-            CommandUtil.reply(ignoredContext, "Tracker §cdisabled");
+            CommandUtil.reply(context, "Tracker §cdisabled");
         }
         return Command.SINGLE_SUCCESS;
     }
