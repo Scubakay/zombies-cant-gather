@@ -7,6 +7,8 @@ import de.maxhenkel.configbuilder.entry.ConfigEntry;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.scubakay.zombiescantgather.command.PermissionManager.TRACKER_LOG_PERMISSION;
+
 @SuppressWarnings("FieldCanBeLocal")
 public class ModConfig {
     private final StringList DEFAULT_ZOMBIE_ITEMS = StringList.of("minecraft:glow_ink_sac");
@@ -15,6 +17,7 @@ public class ModConfig {
     private final boolean DEFAULT_SHOW_TRACKER_LOGS = false;
     private final boolean DEFAULT_TRACK_CUSTOM_NAMED_MOBS = false;
     private final boolean DEFAULT_BROADCAST_TRACKED_MOBS = false;
+    private final int DEFAULT_PERMISSION_LEVEL = 4;
 
     public final ConfigEntry<StringList> zombiesCantGather;
     public final ConfigEntry<StringList> piglinsCantGather;
@@ -22,17 +25,20 @@ public class ModConfig {
     public final ConfigEntry<Boolean> showTrackerLogs;
     public final ConfigEntry<Boolean> trackCustomNamedMobs;
     public final ConfigEntry<Boolean> broadcastTrackedMobs;
+    public final ConfigEntry<Integer> permissionLevel;
 
     public ModConfig(ConfigBuilder builder) {
         zombiesCantGather = builder
-                .entry("zombiescantgather_items", DEFAULT_ZOMBIE_ITEMS)
-                .comment("Blacklist: Zombies can't pick up these items");
+                .entry("zombies_blacklist", DEFAULT_ZOMBIE_ITEMS)
+                .comment("==== BLACKLISTS ====\n" +
+                        "Zombies can't pick up these items");
         piglinsCantGather = builder
-                .entry("piglinscantgather_items", DEFAULT_PIGLIN_ITEMS)
-                .comment("Blacklist: Piglins can't pick up these items");
+                .entry("piglins_blacklist", DEFAULT_PIGLIN_ITEMS)
+                .comment("Piglins can't pick up these items");
         enableTracker = builder
                 .entry("enable_tracker", DEFAULT_ENABLE_TRACKER)
-                .comment("Track mobs holding blacklisted items");
+                .comment("==== TRACKER ====\n" +
+                        "Track mobs holding blacklisted items");
         showTrackerLogs = builder
                 .entry("show_tracker_logs", DEFAULT_SHOW_TRACKER_LOGS)
                 .comment("Show tracker updates in the console");
@@ -41,7 +47,14 @@ public class ModConfig {
                 .comment("Track mobs with a custom name");
         broadcastTrackedMobs = builder
                 .entry("broadcast_tracked_mobs", DEFAULT_BROADCAST_TRACKED_MOBS)
-                .comment("Broadcast tracker updates to OPs");
+                .comment(String.format("Broadcast tracker updates to OPs and users with the '%s' permission", TRACKER_LOG_PERMISSION));
+        permissionLevel = builder
+                .entry("permission_level", DEFAULT_PERMISSION_LEVEL)
+                .comment("""
+                        ==== PERMISSIONS ====
+                        The permission level needed to access Zombies Can't Gather commands.
+                        See https://minecraft.wiki/w/Permission_level for permission levels. For more advanced
+                        permission customization, use a permission manager like LuckPerms""");
     }
 
     public void addZombieItem(String item) {
