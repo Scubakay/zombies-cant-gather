@@ -1,4 +1,5 @@
 - #19 Alert console when entity with blacklisted item is loaded
-- #20 Add command `/zombiescantgather tracked` which lists entities that were loaded holding blacklisted items
-- #20 Add command `/zombiescantgather tracked reset` which resets the entity list
+- #20 Add command `/zcg tracker` which lists entities that were loaded holding blacklisted items
+- #20 Add command `/zcg tracker reset` which resets the entity list
 - #20 Now has a separate `1.21.5` version
+- #26 Add alias `/zcg`

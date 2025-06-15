@@ -30,14 +30,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
+import static com.scubakay.zombiescantgather.command.RootCommand.ROOT_COMMAND;
 
 @SuppressWarnings("SameReturnValue")
-public class TrackerCommand extends RootCommand {
+public class TrackerCommand {
     public static final String TRACKER_COMMAND = "tracker";
     public static final String TRACKER_RESET_COMMAND = "reset";
     public static final String TRACKER_TELEPORT_COMMAND = "teleport";
 
-    public static void register(CommandDispatcher<ServerCommandSource> ignoredDispatcher, CommandRegistryAccess ignoredRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
         LiteralCommandNode<ServerCommandSource> tracker = CommandManager
                 .literal(TRACKER_COMMAND)
                 .requires(ctx -> hasPermission(ctx, TRACKER_PERMISSION))
@@ -46,7 +47,7 @@ public class TrackerCommand extends RootCommand {
                         .argument("page", IntegerArgumentType.integer(1))
                         .executes(ctx -> list(ctx, IntegerArgumentType.getInteger(ctx, "page"))))
                 .build();
-        RootCommand.getRoot().addChild(tracker);
+        RootCommand.getRoot(dispatcher).addChild(tracker);
 
         LiteralCommandNode<ServerCommandSource> reset = CommandManager
                 .literal(TRACKER_RESET_COMMAND)

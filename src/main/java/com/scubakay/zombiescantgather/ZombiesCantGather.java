@@ -1,9 +1,8 @@
 package com.scubakay.zombiescantgather;
 
-import com.scubakay.zombiescantgather.command.PiglinsCantGatherCommand;
 import com.scubakay.zombiescantgather.command.RootCommand;
 import com.scubakay.zombiescantgather.command.TrackerCommand;
-import com.scubakay.zombiescantgather.command.ZombiesCantGatherCommand;
+import com.scubakay.zombiescantgather.command.BlacklistCommand;
 import com.scubakay.zombiescantgather.config.ModConfig;
 import de.maxhenkel.configbuilder.ConfigBuilder;
 import net.fabricmc.api.ModInitializer;
@@ -15,7 +14,6 @@ import java.nio.file.Path;
 
 public class ZombiesCantGather implements ModInitializer {
     public static final String MOD_ID = "zombiescantgather";
-    @SuppressWarnings("unused")
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public static ModConfig MOD_CONFIG;
@@ -33,8 +31,7 @@ public class ZombiesCantGather implements ModInitializer {
                 .build();
 
         CommandRegistrationCallback.EVENT.register(RootCommand::register);
-        CommandRegistrationCallback.EVENT.register(ZombiesCantGatherCommand::register);
-        CommandRegistrationCallback.EVENT.register(PiglinsCantGatherCommand::register);
+        CommandRegistrationCallback.EVENT.register(BlacklistCommand::register);
         if (MOD_CONFIG.enableTracker.get()) {
             CommandRegistrationCallback.EVENT.register(TrackerCommand::register);
         }
