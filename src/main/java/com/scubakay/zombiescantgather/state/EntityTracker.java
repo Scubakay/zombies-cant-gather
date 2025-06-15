@@ -28,7 +28,6 @@ import static com.scubakay.zombiescantgather.ZombiesCantGather.*;
 import static com.scubakay.zombiescantgather.command.PermissionManager.hasPermission;
 
 public class EntityTracker extends PersistentState {
-    public static boolean enabled;
     private final Map<UUID, TrackedEntity> entities;
 
     public EntityTracker() {
@@ -96,7 +95,6 @@ public class EntityTracker extends PersistentState {
     }
 
     private static EntityTracker getState(ServerWorld serverWorld) {
-        enabled = MOD_CONFIG.enableTracker.get();
         return serverWorld.getPersistentStateManager().getOrCreate(createStateType("entity_tracker"));
     }
     //?} else {
@@ -125,7 +123,6 @@ public class EntityTracker extends PersistentState {
     );
 
     private static EntityTracker getState(ServerWorld serverWorld) {
-        enabled = MOD_CONFIG.enableTracker.get();
         return serverWorld.getPersistentStateManager().getOrCreate(type, MOD_ID);
     }
     *///?}

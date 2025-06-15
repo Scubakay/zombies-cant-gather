@@ -43,28 +43,28 @@ public class TrackerCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
         LiteralCommandNode<ServerCommandSource> tracker = CommandManager
                 .literal(TRACKER_COMMAND)
-                .requires(ctx -> (EntityTracker.enabled || hasPermission(ctx, CONFIGURE_MOD_PERMISSION) && hasPermission(ctx, TRACKER_PERMISSION)))
+                .requires(ctx -> (MOD_CONFIG.enableTracker.get() || hasPermission(ctx, CONFIGURE_MOD_PERMISSION) && hasPermission(ctx, TRACKER_PERMISSION)))
                 .executes(ctx -> list(ctx, 1))
                 .then(CommandManager
                         .argument("page", IntegerArgumentType.integer(1))
-                        .requires(ctx -> EntityTracker.enabled && hasPermission(ctx, TRACKER_PERMISSION))
+                        .requires(ctx -> MOD_CONFIG.enableTracker.get() && hasPermission(ctx, TRACKER_PERMISSION))
                         .executes(ctx -> list(ctx, IntegerArgumentType.getInteger(ctx, "page"))))
                 .build();
         RootCommand.getRoot(dispatcher).addChild(tracker);
 
         LiteralCommandNode<ServerCommandSource> reset = CommandManager
                 .literal(TRACKER_RESET_COMMAND)
-                .requires(ctx -> EntityTracker.enabled && hasPermission(ctx, TRACKER_RESET_PERMISSION))
+                .requires(ctx -> MOD_CONFIG.enableTracker.get() && hasPermission(ctx, TRACKER_RESET_PERMISSION))
                 .executes(TrackerCommand::reset)
                 .build();
         tracker.addChild(reset);
 
         LiteralCommandNode<ServerCommandSource> teleport = CommandManager
                 .literal(TRACKER_TELEPORT_COMMAND)
-                .requires(ctx -> EntityTracker.enabled && hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
+                .requires(ctx -> MOD_CONFIG.enableTracker.get() && hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
                 .then(CommandManager
                         .argument("uuid", UuidArgumentType.uuid())
-                        .requires(ctx -> EntityTracker.enabled && hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
+                        .requires(ctx -> MOD_CONFIG.enableTracker.get() && hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
                         .executes(ctx -> teleport(ctx, UuidArgumentType.getUuid(ctx, "uuid"))))
                 .build();
         tracker.addChild(teleport);
@@ -138,9 +138,9 @@ public class TrackerCommand {
     private static int toggle(CommandContext<ServerCommandSource> ignoredContext) {
         MOD_CONFIG.enableTracker.set(!MOD_CONFIG.enableTracker.get()).save();
         if (MOD_CONFIG.enableTracker.get()) {
-            CommandUtil.reply(ignoredContext, "Tracker enabled");
+            CommandUtil.reply(ignoredContext, "Tracker §aenabled§f:\nRe-enter the server/world to reload command completion.");
         } else {
-            CommandUtil.reply(ignoredContext, "Tracker disabled");
+            CommandUtil.reply(ignoredContext, "Tracker §cdisabled§f:\nRe-enter the server/world to reload command completion.");
         }
         return Command.SINGLE_SUCCESS;
     }
