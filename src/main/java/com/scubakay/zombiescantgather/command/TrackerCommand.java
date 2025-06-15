@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
 import static com.scubakay.zombiescantgather.command.RootCommand.ROOT_COMMAND;
 
@@ -37,36 +38,51 @@ public class TrackerCommand {
     public static final String TRACKER_COMMAND = "tracker";
     public static final String TRACKER_RESET_COMMAND = "reset";
     public static final String TRACKER_TELEPORT_COMMAND = "teleport";
+    public static final String TRACKER_TOGGLE_COMMAND = "toggle";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
         LiteralCommandNode<ServerCommandSource> tracker = CommandManager
                 .literal(TRACKER_COMMAND)
-                .requires(ctx -> hasPermission(ctx, TRACKER_PERMISSION))
+                .requires(ctx -> (EntityTracker.enabled || hasPermission(ctx, CONFIGURE_MOD_PERMISSION) && hasPermission(ctx, TRACKER_PERMISSION)))
                 .executes(ctx -> list(ctx, 1))
                 .then(CommandManager
                         .argument("page", IntegerArgumentType.integer(1))
+                        .requires(ctx -> EntityTracker.enabled && hasPermission(ctx, TRACKER_PERMISSION))
                         .executes(ctx -> list(ctx, IntegerArgumentType.getInteger(ctx, "page"))))
                 .build();
         RootCommand.getRoot(dispatcher).addChild(tracker);
 
         LiteralCommandNode<ServerCommandSource> reset = CommandManager
                 .literal(TRACKER_RESET_COMMAND)
-                .requires(ctx -> hasPermission(ctx, TRACKER_RESET_PERMISSION))
+                .requires(ctx -> EntityTracker.enabled && hasPermission(ctx, TRACKER_RESET_PERMISSION))
                 .executes(TrackerCommand::reset)
                 .build();
         tracker.addChild(reset);
 
         LiteralCommandNode<ServerCommandSource> teleport = CommandManager
                 .literal(TRACKER_TELEPORT_COMMAND)
-                .requires(ctx -> hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
+                .requires(ctx -> EntityTracker.enabled && hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
                 .then(CommandManager
                         .argument("uuid", UuidArgumentType.uuid())
+                        .requires(ctx -> EntityTracker.enabled && hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
                         .executes(ctx -> teleport(ctx, UuidArgumentType.getUuid(ctx, "uuid"))))
                 .build();
         tracker.addChild(teleport);
+
+        LiteralCommandNode<ServerCommandSource> toggle = CommandManager
+                .literal(TRACKER_TOGGLE_COMMAND)
+                .requires(ctx -> hasPermission(ctx, CONFIGURE_MOD_PERMISSION))
+                .executes(TrackerCommand::toggle)
+                .build();
+        tracker.addChild(toggle);
     }
 
     public static int list(CommandContext<ServerCommandSource> context, int currentPage) {
+        if (!MOD_CONFIG.enableTracker.get()) {
+            CommandUtil.reply(context, Text.literal("Tracker is not enabled").withColor(Colors.RED));
+            return 0;
+        }
+
         List<TrackedEntity> tracker = EntityTracker
                 .getServerState(context.getSource().getServer())
                 .get()
@@ -115,6 +131,16 @@ public class TrackerCommand {
             player.teleportTo(target);
         } else {
             CommandUtil.reply(context, Text.literal("Only players can run the teleport command"));
+        }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int toggle(CommandContext<ServerCommandSource> ignoredContext) {
+        MOD_CONFIG.enableTracker.set(!MOD_CONFIG.enableTracker.get()).save();
+        if (MOD_CONFIG.enableTracker.get()) {
+            CommandUtil.reply(ignoredContext, "Tracker enabled");
+        } else {
+            CommandUtil.reply(ignoredContext, "Tracker disabled");
         }
         return Command.SINGLE_SUCCESS;
     }

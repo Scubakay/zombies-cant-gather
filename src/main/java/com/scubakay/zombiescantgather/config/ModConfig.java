@@ -4,9 +4,11 @@ import de.maxhenkel.configbuilder.ConfigBuilder;
 import de.maxhenkel.configbuilder.custom.StringList;
 import de.maxhenkel.configbuilder.entry.ConfigEntry;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_ID;
 import static com.scubakay.zombiescantgather.command.PermissionManager.TRACKER_LOG_PERMISSION;
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -26,6 +28,21 @@ public class ModConfig {
     public final ConfigEntry<Boolean> trackCustomNamedMobs;
     public final ConfigEntry<Boolean> broadcastTrackedMobs;
     public final ConfigEntry<Integer> permissionLevel;
+
+    public static Path getConfigDirectory() {
+        return Path.of(".").resolve("config").resolve(MOD_ID);
+    }
+    public static Path getConfigFile() {
+        return getConfigDirectory().resolve("mod.properties");
+    }
+
+    public static ModConfig getModConfig() {
+        return ConfigBuilder.builder(ModConfig::new)
+                .path(ModConfig.getConfigFile())
+                .strict(true)
+                .saveAfterBuild(true)
+                .build();
+    }
 
     public ModConfig(ConfigBuilder builder) {
         zombiesCantGather = builder
