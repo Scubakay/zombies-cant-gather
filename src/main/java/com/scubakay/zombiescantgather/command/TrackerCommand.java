@@ -89,18 +89,12 @@ public class TrackerCommand {
                 .sorted(Comparator.comparingInt(x -> -x.getCount()))
                 .toList();
 
-        if (tracker.isEmpty()) {
-            CommandUtil.reply(context, Text.literal("No entities holding blacklisted items have been tracked yet").withColor(Colors.GREEN));
-            return Command.SINGLE_SUCCESS;
-        }
-
-        CommandUtil.reply(context, Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", tracker.size())));
-        CommandPagination pagination = new CommandPagination(context, tracker.size(), 10);
-        tracker.subList(pagination.fromIndex, pagination.toIndex).forEach(entity ->
-                CommandUtil.reply(context, getTrackerRow(context.getSource(), entity)));
-        CommandUtil.reply(context, pagination.getPagination("No mobs with blacklisted items tracked yet"));
-        CommandUtil.reply(context, pagination.getRefreshButton());
-
+        CommandPagination.builder(context, tracker)
+                .withHeader(parameters -> Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", parameters.elementCount())))
+                .withRows(item -> getTrackerRow(context.getSource(), item))
+                .withFooter(parameters -> Text.literal("No mobs with blacklisted items tracked yet"))
+                .withRefreshButton()
+                .display();
         return Command.SINGLE_SUCCESS;
     }
 
