@@ -16,6 +16,7 @@ import net.minecraft.util.Formatting;
 public class CommandPagination {
     public static final String PAGE_COMMAND = "page";
 
+    public final int elementCount;
     int pageCount;
     public int fromIndex;
     public int toIndex;
@@ -28,6 +29,7 @@ public class CommandPagination {
         } catch (Exception ignored) {
         }
 
+        this.elementCount = elementCount;
         this.pageSize = pageSize;
         this.pageCount = elementCount > 0 ? (elementCount - 1) / this.pageSize + 1 : 0;
         this.fromIndex = Math.min(pageCount, currentPage - 1) * this.pageSize;
