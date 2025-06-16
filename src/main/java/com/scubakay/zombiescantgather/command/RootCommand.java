@@ -32,9 +32,10 @@ public class RootCommand {
         return command;
     }
 
-    public void addChild(CommandNode<ServerCommandSource> node) {
+    public CommandNode<ServerCommandSource> addChild(CommandNode<ServerCommandSource> node) {
         this.root.addChild(node);
         this.alias.addChild(node);
+        return node;
     }
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredCommandRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
