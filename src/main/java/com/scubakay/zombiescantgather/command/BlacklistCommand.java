@@ -5,6 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import com.scubakay.zombiescantgather.util.CommandPagination;
 import com.scubakay.zombiescantgather.util.CommandUtil;
 import de.maxhenkel.configbuilder.custom.StringList;
 import net.minecraft.command.CommandRegistryAccess;
@@ -16,11 +17,12 @@ import net.minecraft.server.command.ServerCommandSource;
 
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
+import static com.scubakay.zombiescantgather.command.RootCommand.ALIAS_COMMAND;
 
 public class BlacklistCommand {
     public enum Blacklist {
         PIGLIN("piglin", "piglins"),
-        ZOMBIE("zombie", "piglins");
+        ZOMBIE("zombie", "zombies");
 
         private final String name;
         private final String plural;
@@ -42,7 +44,7 @@ public class BlacklistCommand {
     private static final String NOT_FOUND_REPLY = "%s§7 not found in §f%s§7 blacklist";
     private static final String INVALID_ENTITY_REPLY = "%s blacklist is not supported";
     private static final String RESET_ITEMS_REPLY = "§7Reset §f%s§7 items";
-    private static final String BLACKLIST_HEADER_REPLY = "%s§7 can't pick up these items:";
+    private static final String BLACKLIST_HEADER_REPLY = "\n%s§7 can't pick up §f%s§7 items:";
     private static final String BLACKLIST_ROW_REPLY = "- §f%s";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registry, RegistrationEnvironment ignoredEnv) {
@@ -100,12 +102,15 @@ public class BlacklistCommand {
 
     public static int list(CommandContext<ServerCommandSource> context, Blacklist type) {
         StringList items = switch (type) {
-            case Blacklist.PIGLIN -> MOD_CONFIG.zombiesCantGather.get();
-            case Blacklist.ZOMBIE -> MOD_CONFIG.piglinsCantGather.get();
+            case Blacklist.PIGLIN -> MOD_CONFIG.piglinsCantGather.get();
+            case Blacklist.ZOMBIE -> MOD_CONFIG.zombiesCantGather.get();
         };
         if (items != null) {
-            CommandUtil.reply(context, BLACKLIST_HEADER_REPLY, type.toPlural());
-            items.forEach((item) -> CommandUtil.reply(context, BLACKLIST_ROW_REPLY, item));
+            CommandPagination pagination = new CommandPagination(context, items.stream().toList().size(), 2);
+            CommandUtil.reply(context, BLACKLIST_HEADER_REPLY, type.toPlural(), pagination.elementCount);
+            items.subList(pagination.fromIndex, pagination.toIndex).forEach((item) ->
+                    CommandUtil.reply(context, BLACKLIST_ROW_REPLY, item));
+            CommandUtil.reply(context, pagination.getPagination(String.format("/%s %s", ALIAS_COMMAND, type), String.format("No items on %s blacklist", type)));
             return Command.SINGLE_SUCCESS;
         } else {
             CommandUtil.reply(context, INVALID_ENTITY_REPLY, type);
@@ -127,6 +132,7 @@ public class BlacklistCommand {
                 .literal(entity.toString())
                 .requires(ctx -> hasPermission(ctx, BLACKLIST_PERMISSION))
                 .executes(ctx -> list(ctx, entity))
+                .then(CommandPagination.getPageCommand(ctx -> list(ctx, entity)))
                 .build();
     }
 
