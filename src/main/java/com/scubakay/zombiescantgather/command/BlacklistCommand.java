@@ -114,7 +114,6 @@ public class BlacklistCommand {
             items.subList(pagination.fromIndex, pagination.toIndex).forEach((item) ->
                     CommandUtil.reply(context, BLACKLIST_ROW_REPLY, item));
             CommandUtil.reply(context, pagination.getPagination(String.format("No items on %s blacklist", type)));
-            CommandUtil.reply(context, pagination.getRefreshButton());
             return Command.SINGLE_SUCCESS;
         } else {
             CommandUtil.reply(context, INVALID_ENTITY_REPLY, type);
