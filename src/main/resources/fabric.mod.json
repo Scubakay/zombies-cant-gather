@@ -17,10 +17,17 @@
   "entrypoints": {
     "main": [
       "com.scubakay.zombiescantgather.ZombiesCantGather"
+    ],
+    "client": [
+      "com.scubakay.zombiescantgather.client.ZombiesCantGatherClient"
     ]
   },
   "mixins": [
-    "zombiescantgather.mixins.json"
+    "zombiescantgather.mixins.json",
+    {
+      "config": "zombiescantgather.client.mixins.json",
+      "environment": "client"
+    }
   ],
   "depends": {
     "fabricloader": ">=0.15",

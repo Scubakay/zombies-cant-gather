@@ -5,6 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import com.scubakay.zombiescantgather.config.ModConfig;
 import com.scubakay.zombiescantgather.util.CommandPagination;
 import com.scubakay.zombiescantgather.util.CommandUtil;
 import net.minecraft.command.CommandRegistryAccess;
@@ -20,9 +21,9 @@ import net.minecraft.text.Text;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
 
+@SuppressWarnings("SameReturnValue")
 public class BlacklistCommand {
     public enum Blacklist {
         PIGLIN("piglin", "piglins"),
@@ -65,48 +66,39 @@ public class BlacklistCommand {
 
     public static int add(CommandContext<ServerCommandSource> context, Blacklist type, ItemStackArgument itemStackArgument) {
         String item = itemStackArgument.getItem().toString();
-        try {
-            switch(type) {
-                case PIGLIN:
-                    MOD_CONFIG.addPiglinItem(item);
-                    CommandUtil.reply(context, ADDED_REPLY, type.toPlural(), item);
-                    break;
-                case ZOMBIE:
-                    MOD_CONFIG.addZombieItem(item);
-                    CommandUtil.reply(context, ADDED_REPLY, type.toPlural(), item);
-                    break;
-            }
-            return Command.SINGLE_SUCCESS;
-        } catch (IllegalArgumentException ex) {
+        List<String> list = switch(type) {
+            case PIGLIN -> ModConfig.piglinsBlacklist;
+            case ZOMBIE -> ModConfig.zombiesBlacklist;
+        };
+        if (list.contains(item)) {
             CommandUtil.reply(context, DUPLICATE_REPLY, item, type);
             return 0;
         }
+        list.add(item);
+        CommandUtil.reply(context, ADDED_REPLY, type.toPlural(), item);
+        return Command.SINGLE_SUCCESS;
     }
 
     public static int remove(CommandContext<ServerCommandSource> context, Blacklist type, ItemStackArgument itemStackArgument) {
         String item = itemStackArgument.getItem().toString();
-        try {
-            switch(type) {
-                case Blacklist.PIGLIN:
-                    MOD_CONFIG.removePiglinItem(item);
-                    CommandUtil.reply(context, REMOVED_REPLY, type.toPlural(), item);
-                    break;
-                case Blacklist.ZOMBIE:
-                    MOD_CONFIG.removeZombieItem(item);
-                    CommandUtil.reply(context, REMOVED_REPLY, type.toPlural(), item);
-                    break;
-            }
-            return Command.SINGLE_SUCCESS;
-        } catch (IllegalArgumentException ex) {
+        List<String> list = switch(type) {
+            case PIGLIN -> ModConfig.piglinsBlacklist;
+            case ZOMBIE -> ModConfig.zombiesBlacklist;
+        };
+        int index = list.indexOf(item);
+        if (index < 0) {
             CommandUtil.reply(context, NOT_FOUND_REPLY, item, type);
             return 0;
         }
+        list.remove(item);
+        CommandUtil.reply(context, REMOVED_REPLY, type.toPlural(), item);
+        return Command.SINGLE_SUCCESS;
     }
 
     public static int list(CommandContext<ServerCommandSource> context, Blacklist type) {
         List<String> items = switch (type) {
-            case Blacklist.PIGLIN -> MOD_CONFIG.piglinsCantGather.get().stream().toList();
-            case Blacklist.ZOMBIE -> MOD_CONFIG.zombiesCantGather.get().stream().toList();
+            case PIGLIN -> ModConfig.piglinsBlacklist;
+            case ZOMBIE -> ModConfig.zombiesBlacklist;
         };
         CommandPagination.builder(context, items)
                 .withPageSize(5)
@@ -119,9 +111,10 @@ public class BlacklistCommand {
 
     public static int reset(CommandContext<ServerCommandSource> context, Blacklist type) {
         switch (type) {
-            case Blacklist.PIGLIN -> MOD_CONFIG.resetPiglinItems();
-            case Blacklist.ZOMBIE -> MOD_CONFIG.resetZombieItems();
+            case PIGLIN -> ModConfig.piglinsBlacklist.clear();
+            case ZOMBIE -> ModConfig.zombiesBlacklist.clear();
         }
+
         CommandUtil.reply(context, RESET_ITEMS_REPLY, type);
         return Command.SINGLE_SUCCESS;
     }
@@ -147,11 +140,11 @@ public class BlacklistCommand {
                     Stream<Item> stream = Registries.ITEM.stream();
                     switch (entityType) {
                         case Blacklist.PIGLIN:
-                            stream.filter(x -> !MOD_CONFIG.piglinsCantGather.get().contains(x.asItem().toString()))
+                            stream.filter(x -> !ModConfig.piglinsBlacklist.contains(x.asItem().toString()))
                                     .forEach(x -> builder.suggest(x.asItem().toString()));
                             break;
                         case Blacklist.ZOMBIE:
-                            stream.filter(x -> !MOD_CONFIG.zombiesCantGather.get().contains(x.asItem().toString()))
+                            stream.filter(x -> !ModConfig.zombiesBlacklist.contains(x.asItem().toString()))
                                     .forEach(x -> builder.suggest(x.asItem().toString()));
                             break;
                     }
@@ -174,10 +167,10 @@ public class BlacklistCommand {
                 .suggests((context, builder) -> {
                     switch (entityType) {
                         case Blacklist.PIGLIN:
-                            for (String s : MOD_CONFIG.piglinsCantGather.get()) builder.suggest(s);
+                            for (String s : ModConfig.piglinsBlacklist) builder.suggest(s);
                             break;
                         case Blacklist.ZOMBIE:
-                            for (String s : MOD_CONFIG.zombiesCantGather.get()) builder.suggest(s);
+                            for (String s : ModConfig.zombiesBlacklist) builder.suggest(s);
                             break;
                     }
                     return builder.buildFuture();

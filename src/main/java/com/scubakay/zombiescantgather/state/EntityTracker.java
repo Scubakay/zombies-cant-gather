@@ -3,6 +3,7 @@ package com.scubakay.zombiescantgather.state;
 import com.scubakay.zombiescantgather.ZombiesCantGather;
 import com.scubakay.zombiescantgather.command.PermissionManager;
 import com.scubakay.zombiescantgather.command.TrackerCommand;
+import com.scubakay.zombiescantgather.config.ModConfig;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
@@ -75,10 +76,10 @@ public class EntityTracker extends PersistentState {
 
         this.entities.put(trackedEntity.getUuid(), trackedEntity);
         this.markDirty();
-        if (MOD_CONFIG.showTrackerLogs.get()) {
+        if (ModConfig.showTrackerLogs) {
             LOGGER.info("Loaded {} {} time(s) holding blacklisted item \"{}\" at {}", trackedEntity.getName(), trackedEntity.getCount(), trackedEntity.getItem(), trackedEntity.getPos().toShortString());
         }
-        if (MOD_CONFIG.broadcastTrackedMobs.get()){
+        if (ModConfig.broadcastTrackedMobs){
             Objects.requireNonNull(entity.getServer()).getPlayerManager().getPlayerList().stream()
                     .filter(player -> hasPermission(player, PermissionManager.TRACKER_LOG_PERMISSION))
                     .forEach(player -> player.getCommandSource().sendMessage(TrackerCommand.getTrackerRow(player.getCommandSource(), trackedEntity)));

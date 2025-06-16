@@ -107,7 +107,7 @@ public class CommandPagination<C, D extends List<C>> {
     public void display() {
         if (header != null) {
             CommandUtil.reply(context, header);
-            CommandUtil.reply(context, Text.literal(" ------------------------- ")
+            CommandUtil.reply(context, Text.literal(" --------------------------- ")
                     .styled(style -> style
                             .withColor(Colors.LIGHT_GRAY)));
         }
