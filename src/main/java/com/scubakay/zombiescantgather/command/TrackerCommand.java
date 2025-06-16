@@ -114,7 +114,15 @@ public class TrackerCommand {
                 .append(Text.literal("< ")
                         .styled(style -> getPageLinkStyle(style, command, pagination.currentPage > 1, "Previous page", pagination.currentPage - 1)))
                 .append(Text.literal(pagination.currentPage + "/" + pagination.pageCount)
-                        .styled(style -> style.withColor(Colors.WHITE)))
+                        .styled(style -> style
+                                .withColor(Colors.WHITE)
+                                //? >=1.21.5 {
+                                .withClickEvent(new ClickEvent.ChangePage(1))
+                                .withHoverEvent(new HoverEvent.ShowText(Text.literal(pagination.currentPage + "/" + pagination.pageCount)))))
+                //?} else {
+                /*.withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, 0))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(pagination.currentPage + "/" + pagination.pageCount))))
+                *///?}
                 .append(Text.literal(" >")
                         .styled(style -> getPageLinkStyle(style, command, pagination.currentPage < pagination.pageCount, "Next page", pagination.currentPage + 1)))
                 .append(Text.literal(" >>")
@@ -133,10 +141,10 @@ public class TrackerCommand {
                 *///?}
         } else {
             //? >=1.21.5 {
-            style = style.withClickEvent(null)
-                    .withHoverEvent(null);
+            style = style.withClickEvent(new ClickEvent.ChangePage(1))
+                    .withHoverEvent(new HoverEvent.ShowText(Text.literal(tooltip)));
             //?} else {
-                /*style = style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(command, 1)))
+                /*style = style.withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, 0))
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(tooltip)))))
                 *///?}
         }
