@@ -96,7 +96,7 @@ public class TrackerCommand {
 
         CommandUtil.reply(context, Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", tracker.size())));
 
-        CommandPagination pagination = new CommandPagination(context, tracker.size());
+        CommandPagination pagination = new CommandPagination(context, tracker.size(), 10);
         tracker.subList(pagination.fromIndex, pagination.toIndex).forEach(entity ->
                 CommandUtil.reply(context, getTrackerRow(context.getSource(), entity)));
 
@@ -187,14 +187,14 @@ public class TrackerCommand {
                         .withColor(entity.getDimensionColor())
                         //? >=1.21.5 {
                         .withClickEvent(new ClickEvent.RunCommand(getTpCommand(entity)))
-                        .withHoverEvent(new HoverEvent.ShowText(getTpButtonToolTIp(entity))));
+                        .withHoverEvent(new HoverEvent.ShowText(getTpButtonToolTip(entity))));
         //?} else {
                         /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getTpCommand(entity)))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTpButtonToolTIp(entity))));
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTpButtonToolTip(entity))));
                         *///?}
     }
 
-    private static Text getTpButtonToolTIp(TrackedEntity entity) {
+    private static Text getTpButtonToolTip(TrackedEntity entity) {
         return Text.literal(entity.getName())
                 .styled(style -> style
                         .withColor(entity.getDimensionColor())

@@ -22,15 +22,16 @@ public class CommandPagination {
     int pageSize;
     int currentPage = 1;
 
-    public CommandPagination(CommandContext<ServerCommandSource> context, int size) {
+    public CommandPagination(CommandContext<ServerCommandSource> context, int elementCount, int pageSize) {
         try {
             this.currentPage = IntegerArgumentType.getInteger(context, "page");
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
-        this.pageSize = 10;
-        this.pageCount = size > 0 ? (size - 1) / pageSize + 1 : 0;
-        this.fromIndex = Math.min(pageCount, currentPage - 1) * pageSize;
-        this.toIndex = Math.min(size, fromIndex + pageSize);
+        this.pageSize = pageSize;
+        this.pageCount = elementCount > 0 ? (elementCount - 1) / this.pageSize + 1 : 0;
+        this.fromIndex = Math.min(pageCount, currentPage - 1) * this.pageSize;
+        this.toIndex = Math.min(elementCount, fromIndex + this.pageSize);
     }
 
     public static LiteralArgumentBuilder<ServerCommandSource> getPageCommand(Command<ServerCommandSource> command) {
@@ -53,16 +54,16 @@ public class CommandPagination {
                 .styled(style -> getPageLinkStyle(style, command, this.currentPage > 1, "First page", 1))
                 .append(Text.literal("< ")
                         .styled(style -> getPageLinkStyle(style, command, this.currentPage > 1, "Previous page", this.currentPage - 1)))
-                .append(Text.literal(this.currentPage + "/" + this.pageCount)
+                .append(Text.literal(this.currentPage + " / " + this.pageCount)
                         .styled(style -> style
                                 .withColor(Colors.WHITE)
                                 //? >=1.21.5 {
                                 .withClickEvent(new ClickEvent.ChangePage(1))
                                 .withHoverEvent(new HoverEvent.ShowText(Text.literal(this.currentPage + "/" + this.pageCount)))))
                 //?} else {
-                /*.withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, 0))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(this.currentPage + "/" + this.pageCount))))
-                *///?}
+                /*.withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1"))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(this.currentPage + "/" + this.pageCount)))))
+        *///?}
                 .append(Text.literal(" >")
                         .styled(style -> getPageLinkStyle(style, command, this.currentPage < this.pageCount, "Next page", this.currentPage + 1)))
                 .append(Text.literal(" >>")
@@ -80,18 +81,24 @@ public class CommandPagination {
             style = style.withClickEvent(new ClickEvent.RunCommand(getPageLink(command, page)))
                     .withHoverEvent(new HoverEvent.ShowText(Text.literal(tooltip)));
             //?} else {
-                /*style = style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageCommand(command, 1)))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(tooltip)))))
-                *///?}
+            /*style = style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageLink(command, page)))
+                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(tooltip)));
+            *///?}
         } else {
             //? >=1.21.5 {
             style = style.withClickEvent(new ClickEvent.ChangePage(1))
                     .withHoverEvent(new HoverEvent.ShowText(Text.literal(tooltip)));
             //?} else {
-                /*style = style.withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, 0))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(tooltip)))))
-                *///?}
+            /*style = style.withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1"))
+                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(tooltip)));
+            *///?}
         }
         return style;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("CommandPagination{currentPage=%s, pageCount=%s, fromIndex=%s, toIndex=%s, pageSize=%s}",
+                currentPage, pageCount, fromIndex, toIndex, pageSize);
     }
 }
