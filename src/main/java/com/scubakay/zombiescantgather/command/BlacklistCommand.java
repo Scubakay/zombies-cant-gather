@@ -11,9 +11,13 @@ import de.maxhenkel.configbuilder.custom.StringList;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.ItemStackArgument;
 import net.minecraft.command.argument.ItemStackArgumentType;
+import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.CommandManager.RegistrationEnvironment;
 import net.minecraft.server.command.ServerCommandSource;
+
+import java.util.stream.Stream;
 
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
@@ -144,6 +148,20 @@ public class BlacklistCommand {
         ArgumentCommandNode<ServerCommandSource, ItemStackArgument> itemNode = CommandManager
                 .argument(ITEM_ARGUMENT, ItemStackArgumentType.itemStack(registry))
                 .requires(ctx -> hasPermission(ctx, BLACKLIST_ADD_PERMISSION))
+                .suggests((context, builder) -> {
+                    Stream<Item> stream = Registries.ITEM.stream();
+                    switch (entityType) {
+                        case Blacklist.PIGLIN:
+                            stream.filter(x -> !MOD_CONFIG.piglinsCantGather.get().contains(x.asItem().toString()))
+                                    .forEach(x -> builder.suggest(x.asItem().toString()));
+                            break;
+                        case Blacklist.ZOMBIE:
+                            stream.filter(x -> !MOD_CONFIG.zombiesCantGather.get().contains(x.asItem().toString()))
+                                    .forEach(x -> builder.suggest(x.asItem().toString()));
+                            break;
+                    }
+                    return builder.buildFuture();
+                })
                 .executes(ctx -> add(ctx, entityType, ItemStackArgumentType.getItemStackArgument(ctx, ITEM_ARGUMENT)))
                 .build();
         addNode.addChild(itemNode);
@@ -161,10 +179,10 @@ public class BlacklistCommand {
                 .suggests((context, builder) -> {
                     switch (entityType) {
                         case Blacklist.PIGLIN:
-                            for (String s : MOD_CONFIG.zombiesCantGather.get()) builder.suggest(s);
+                            for (String s : MOD_CONFIG.piglinsCantGather.get()) builder.suggest(s);
                             break;
                         case Blacklist.ZOMBIE:
-                            for (String s : MOD_CONFIG.piglinsCantGather.get()) builder.suggest(s);
+                            for (String s : MOD_CONFIG.zombiesCantGather.get()) builder.suggest(s);
                             break;
                     }
                     return builder.buildFuture();
