@@ -90,7 +90,7 @@ public class CommandPagination {
             style = style.withClickEvent(new ClickEvent.RunCommand(getPageLink(page)))
                     .withHoverEvent(new HoverEvent.ShowText(Text.literal(tooltip)));
             //?} else {
-            /*style = style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageLink(command, page)))
+            /*style = style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageLink(page)))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(tooltip)));
             *///?}
         } else {
