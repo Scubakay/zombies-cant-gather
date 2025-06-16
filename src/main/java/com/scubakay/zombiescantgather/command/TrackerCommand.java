@@ -32,7 +32,6 @@ import java.util.*;
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
 import static com.scubakay.zombiescantgather.command.PermissionManager.hasPermission;
-import static com.scubakay.zombiescantgather.command.RootCommand.ALIAS_COMMAND;
 import static com.scubakay.zombiescantgather.command.RootCommand.ROOT_COMMAND;
 
 @SuppressWarnings("SameReturnValue")
@@ -96,13 +95,11 @@ public class TrackerCommand {
         }
 
         CommandUtil.reply(context, Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", tracker.size())));
-
         CommandPagination pagination = new CommandPagination(context, tracker.size(), 10);
         tracker.subList(pagination.fromIndex, pagination.toIndex).forEach(entity ->
                 CommandUtil.reply(context, getTrackerRow(context.getSource(), entity)));
-
-        final String command = String.format("/%s %s", ALIAS_COMMAND, TRACKER_COMMAND);
-        CommandUtil.reply(context, pagination.getPagination(command, "No mobs with blacklisted items tracked yet"));
+        CommandUtil.reply(context, pagination.getPagination("No mobs with blacklisted items tracked yet"));
+        CommandUtil.reply(context, pagination.getRefreshButton());
 
         return Command.SINGLE_SUCCESS;
     }

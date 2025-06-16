@@ -21,7 +21,6 @@ import java.util.stream.Stream;
 
 import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
-import static com.scubakay.zombiescantgather.command.RootCommand.ALIAS_COMMAND;
 
 public class BlacklistCommand {
     public enum Blacklist {
@@ -114,7 +113,7 @@ public class BlacklistCommand {
             CommandUtil.reply(context, BLACKLIST_HEADER_REPLY, type.toPlural(), pagination.elementCount);
             items.subList(pagination.fromIndex, pagination.toIndex).forEach((item) ->
                     CommandUtil.reply(context, BLACKLIST_ROW_REPLY, item));
-            CommandUtil.reply(context, pagination.getPagination(String.format("/%s %s", ALIAS_COMMAND, type), String.format("No items on %s blacklist", type)));
+            CommandUtil.reply(context, pagination.getPagination(String.format("No items on %s blacklist", type)));
             return Command.SINGLE_SUCCESS;
         } else {
             CommandUtil.reply(context, INVALID_ENTITY_REPLY, type);
