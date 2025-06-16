@@ -84,25 +84,16 @@ public class CommandPagination {
     }
 
     private Style getPageLinkStyle(Style style, boolean clickable, String tooltip, int page) {
-        style = style.withColor(clickable ? Colors.GREEN : Colors.GRAY);
-        if (clickable) {
-            //? >=1.21.5 {
-            style = style.withClickEvent(new ClickEvent.RunCommand(getPageLink(page)))
-                    .withHoverEvent(new HoverEvent.ShowText(Text.literal(tooltip)));
-            //?} else {
-            /*style = style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageLink(page)))
-                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(tooltip)));
-            *///?}
-        } else {
-            //? >=1.21.5 {
-            style = style.withClickEvent(new ClickEvent.ChangePage(1))
-                    .withHoverEvent(new HoverEvent.ShowText(Text.literal(tooltip)));
-            //?} else {
-            /*style = style.withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1"))
-                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(tooltip)));
-            *///?}
-        }
-        return style;
+        //? >=1.21.5 {
+        ClickEvent click = clickable ? new ClickEvent.RunCommand(getPageLink(page)) : new ClickEvent.ChangePage(1);
+        HoverEvent hover = new HoverEvent.ShowText(Text.literal(tooltip));
+        //?} else {
+        /*ClickEvent click = new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageLink(page)) : new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1");
+        HoverEvent hover =new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(tooltip))
+        *///?}
+        return style.withColor(clickable ? Colors.GREEN : Colors.GRAY)
+                .withClickEvent(click)
+                .withHoverEvent(hover);
     }
 
     @Override
