@@ -3,3 +3,4 @@
 - #20 Add command `/zcg tracker reset` which resets the entity list
 - #20 Now has a separate `1.21.5` version
 - #26 Add alias `/zcg`
+- #33 Add pagination to blacklists
