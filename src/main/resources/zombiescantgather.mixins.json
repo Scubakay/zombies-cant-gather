@@ -6,7 +6,9 @@
     "EntityMixin",
     "EntityTypeMixin",
     "PiglinEntityMixin",
-    "ZombieEntityMixin"
+    "ZombieEntityMixin",
+    "midnightlib.AutoCommandMixin",
+    "midnightlib.PlatformFunctionsImplMixin"
   ],
   "injectors": {
     "defaultRequire": 1
