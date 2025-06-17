@@ -39,8 +39,6 @@ public class RootCommand {
     }
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredCommandRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
-        if (command == null) {
-            command = new RootCommand(dispatcher);
-        }
+        getRoot(dispatcher);
     }
 }

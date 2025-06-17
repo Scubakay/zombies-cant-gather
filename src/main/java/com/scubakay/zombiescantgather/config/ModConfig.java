@@ -1,11 +1,11 @@
 package com.scubakay.zombiescantgather.config;
 
-import eu.midnightdust.lib.config.MidnightConfig;
+import com.scubakay.zombiescantgather.util.CommandUpdatingConfig;
 
 import java.util.List;
 
 @SuppressWarnings("CanBeFinal")
-public class ModConfig extends MidnightConfig {
+public class ModConfig extends CommandUpdatingConfig {
     public static final String general = "general";
     public static final String tracker = "tracker";
 
