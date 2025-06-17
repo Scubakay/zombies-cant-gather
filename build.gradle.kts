@@ -31,11 +31,12 @@ group = mod.group
 base { archivesName.set(mod.id) }
 
 loom {
-    serverOnlyMinecraftJar()
+    splitEnvironmentSourceSets()
 
     mods {
         create("template") {
             sourceSet(sourceSets["main"])
+            sourceSet(sourceSets["client"])
         }
     }
 }
@@ -72,9 +73,12 @@ dependencies {
         "fabric-lifecycle-events-v1",
     )
 
-    implementation("de.maxhenkel.configbuilder:configbuilder:${deps["maxhenkel_configbuilder"]}")
-    include("de.maxhenkel.configbuilder:configbuilder:${deps["maxhenkel_configbuilder"]}")
     modImplementation("me.lucko:fabric-permissions-api:${deps["fabric_permission_api"]}")
+    modImplementation("maven.modrinth:midnightlib:${deps["midnightlib"]}")
+    include("maven.modrinth:midnightlib:${deps["midnightlib"]}")
+
+    // Dev mods
+    modImplementation("maven.modrinth:modmenu:${deps["modmenu"]}-fabric")
     modImplementation("maven.modrinth:luckperms:${deps["luckperms"]}")
 }
 
@@ -147,6 +151,24 @@ if (stonecutter.current.isActive) {
                 ideConfigGenerated(true)
                 runDir = "../../run"
                 name = "Run Active Server"
+                vmArgs("-Dmixin.debug.export=true")
+                property("fabric.mcVersion", mcVersion)
+            }
+        }
+    }
+
+    rootProject.tasks.register("Run Active Client") {
+        group = "stonecutter"
+        dependsOn(tasks.named("runClient"))
+    }
+
+    loom {
+        runs {
+            create("Run Active Client") {
+                client()
+                ideConfigGenerated(true)
+                runDir = "../../run"
+                name = "Run Active Client"
                 vmArgs("-Dmixin.debug.export=true")
                 property("fabric.mcVersion", mcVersion)
             }

@@ -4,6 +4,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.CommandNode;
+import com.scubakay.zombiescantgather.config.ModConfig;
 import com.scubakay.zombiescantgather.state.EntityTracker;
 import com.scubakay.zombiescantgather.state.TrackedEntity;
 import com.scubakay.zombiescantgather.util.CommandPagination;
@@ -29,9 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
-import static com.scubakay.zombiescantgather.command.PermissionManager.hasPermission;
 import static com.scubakay.zombiescantgather.command.RootCommand.ROOT_COMMAND;
 
 @SuppressWarnings("SameReturnValue")
@@ -39,44 +38,37 @@ public class TrackerCommand {
     public static final String TRACKER_COMMAND = "tracker";
     public static final String TRACKER_RESET_COMMAND = "reset";
     public static final String TRACKER_TELEPORT_COMMAND = "teleport";
-    public static final String TRACKER_TOGGLE_COMMAND = "toggle";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
         CommandNode<ServerCommandSource> tracker = RootCommand.getRoot(dispatcher).addChild(CommandManager
                 .literal(TRACKER_COMMAND)
-                .requires(ctx -> (MOD_CONFIG.enableTracker.get() || hasPermission(ctx, CONFIGURE_MOD_PERMISSION)) && hasPermission(ctx, TRACKER_PERMISSION))
+                .requires(ctx -> ModConfig.enableTracker && hasPermission(ctx, TRACKER_PERMISSION))
                 .executes(TrackerCommand::list)
                 .build());
 
         tracker.addChild(CommandPagination
                 .getPageCommand(TrackerCommand::list)
-                .requires(ctx -> MOD_CONFIG.enableTracker.get() && PermissionManager.hasPermission(ctx, TRACKER_PERMISSION))
+                .requires(ctx -> ModConfig.enableTracker && PermissionManager.hasPermission(ctx, TRACKER_PERMISSION))
                 .build());
 
         tracker.addChild(CommandManager
                 .literal(TRACKER_RESET_COMMAND)
-                .requires(ctx -> MOD_CONFIG.enableTracker.get() && hasPermission(ctx, TRACKER_RESET_PERMISSION))
+                .requires(ctx -> ModConfig.enableTracker && hasPermission(ctx, TRACKER_RESET_PERMISSION))
                 .executes(TrackerCommand::reset)
                 .build());
 
         tracker.addChild(CommandManager
                 .literal(TRACKER_TELEPORT_COMMAND)
-                .requires(ctx -> MOD_CONFIG.enableTracker.get() && hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
+                .requires(ctx -> ModConfig.enableTracker && hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
                 .then(CommandManager
                         .argument("uuid", UuidArgumentType.uuid())
-                        .requires(ctx -> MOD_CONFIG.enableTracker.get() && hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
+                        .requires(ctx -> ModConfig.enableTracker && hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
                         .executes(ctx -> teleport(ctx, UuidArgumentType.getUuid(ctx, "uuid"))))
-                .build());
-
-        tracker.addChild(CommandManager
-                .literal(TRACKER_TOGGLE_COMMAND)
-                .requires(ctx -> hasPermission(ctx, CONFIGURE_MOD_PERMISSION))
-                .executes(TrackerCommand::toggle)
                 .build());
     }
 
     public static int list(CommandContext<ServerCommandSource> context) {
-        if (!MOD_CONFIG.enableTracker.get()) {
+        if (!ModConfig.enableTracker) {
             CommandUtil.reply(context, Text.literal("Tracker is not enabled").withColor(Colors.RED));
             return 0;
         }
@@ -121,21 +113,6 @@ public class TrackerCommand {
             player.teleportTo(target);
         } else {
             CommandUtil.reply(context, Text.literal("Only players can run the teleport command"));
-        }
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int toggle(CommandContext<ServerCommandSource> context) {
-        MOD_CONFIG.enableTracker.set(!MOD_CONFIG.enableTracker.get()).save();
-        if (context.getSource().isExecutedByPlayer()) {
-            ServerPlayerEntity player = context.getSource().getPlayer();
-            context.getSource().getServer().getPlayerManager().sendCommandTree(player);
-        }
-
-        if (MOD_CONFIG.enableTracker.get()) {
-            CommandUtil.reply(context, "Tracker §aenabled");
-        } else {
-            CommandUtil.reply(context, "Tracker §cdisabled");
         }
         return Command.SINGLE_SUCCESS;
     }

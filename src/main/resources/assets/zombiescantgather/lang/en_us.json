@@ -1,0 +1,16 @@
+{
+  "zombiescantgather.midnightconfig.category.general": "General",
+  "zombiescantgather.midnightconfig.category.tracker": "Tracker",
+  "zombiescantgather.midnightconfig.zombiesBlacklist": "Zombies can't pick up these items",
+  "zombiescantgather.midnightconfig.piglinsBlacklist": "Piglins can't pick up these items",
+  "zombiescantgather.midnightconfig.trackerDescription": "The tracker logs potentially unwanted mobs and the reason for their persistence, accessible with the command §e/zcg tracker§f",
+  "zombiescantgather.midnightconfig.enableTracker": "Enable tracker",
+  "zombiescantgather.midnightconfig.enableTracker.tooltip": "Track potentially unwanted persistent mobs",
+  "zombiescantgather.midnightconfig.trackCustomNamedMobs": "Track nametagged mobs",
+  "zombiescantgather.midnightconfig.trackCustomNamedMobs.tooltip": "Track mobs that were renamed with a nametag",
+  "zombiescantgather.midnightconfig.showTrackerLogs":  "Log tracker updates",
+  "zombiescantgather.midnightconfig.showTrackerLogs.tooltip":  "Log tracker updates in the console",
+  "zombiescantgather.midnightconfig.broadcastTrackedMobs": "Broadcast tracker updates",
+  "zombiescantgather.midnightconfig.broadcastTrackedMobs.tooltip": "Broadcast tracker updates in chat",
+  "zombiescantgather.midnightconfig.permissionLevel": "The permission level needed to access Zombies Can't Gather commands.\nSee https://minecraft.wiki/w/Permission_level for permission levels. For more advanced\npermission customization, use a permission manager like LuckPerms§f"
+}

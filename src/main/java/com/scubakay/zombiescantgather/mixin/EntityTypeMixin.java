@@ -1,5 +1,6 @@
 package com.scubakay.zombiescantgather.mixin;
 
+import com.scubakay.zombiescantgather.config.ModConfig;
 import com.scubakay.zombiescantgather.state.EntityTracker;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -19,22 +20,20 @@ import java.util.function.Function;
 import net.minecraft.entity.SpawnReason;
 //?}
 
-import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_CONFIG;
-
 @Mixin(EntityType.class)
 public class EntityTypeMixin {
     @Inject(method = "method_17843", at = @At("RETURN"))
     private static void zombiesCantGather$checkForbiddenItems(NbtCompound nbtCompound, World world, /*? >= 1.21.2 {*/SpawnReason spawnReason,/*?}*/ Function<Entity, Entity> function, Entity entity, CallbackInfoReturnable<Entity> cir) {
-        if (MOD_CONFIG.enableTracker.get() && world instanceof ServerWorld && entity instanceof MobEntity mobEntity) {
-            if (mobEntity.getCustomName() == null || MOD_CONFIG.trackCustomNamedMobs.get()) {
+        if (ModConfig.enableTracker && world instanceof ServerWorld && entity instanceof MobEntity mobEntity) {
+            if (mobEntity.getCustomName() == null || ModConfig.trackCustomNamedMobs) {
                 //? >= 1.21.5 {
                 ItemStack item = mobEntity.getMainHandStack();
                 //?} else {
                 /*ItemStack item = mobEntity.getHandItems().iterator().next();
                 *///?}
-                if (entity instanceof ZombieEntity zombie && MOD_CONFIG.zombiesCantGather.get().contains(item.getItem().toString())) {
+                if (entity instanceof ZombieEntity zombie && ModConfig.zombiesBlacklist.contains(item.getItem().toString())) {
                     EntityTracker.getServerState(world.getServer()).track(zombie);
-                } else if (entity instanceof PiglinEntity piglin && MOD_CONFIG.piglinsCantGather.get().contains(item.getItem().toString())) {
+                } else if (entity instanceof PiglinEntity piglin && ModConfig.piglinsBlacklist.contains(item.getItem().toString())) {
                     EntityTracker.getServerState(world.getServer()).track(piglin);
                 }
             }

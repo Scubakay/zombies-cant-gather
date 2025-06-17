@@ -8,8 +8,8 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 
 public class RootCommand {
-    public static String ROOT_COMMAND = "zombiescantgather";
-    public static String ALIAS_COMMAND = "zcg";
+    public static final String ROOT_COMMAND = "zombiescantgather";
+    public static final String ALIAS_COMMAND = "zcg";
     private final LiteralCommandNode<ServerCommandSource> root;
     private final LiteralCommandNode<ServerCommandSource> alias;
     private static RootCommand command;
@@ -39,8 +39,6 @@ public class RootCommand {
     }
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredCommandRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
-        if (command == null) {
-            command = new RootCommand(dispatcher);
-        }
+        getRoot(dispatcher);
     }
 }

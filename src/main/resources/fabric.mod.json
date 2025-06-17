@@ -11,16 +11,30 @@
     "issues": "https://github.com/Scubakay/zombies-cant-gather/issues",
     "sources": "https://github.com/Scubakay/zombies-cant-gather"
   },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/t8AYBrmqbD"
+      }
+    }
+  },
   "license": "MIT",
   "icon": "assets/zombiescantgather/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
       "com.scubakay.zombiescantgather.ZombiesCantGather"
+    ],
+    "client": [
+      "com.scubakay.zombiescantgather.client.ZombiesCantGatherClient"
     ]
   },
   "mixins": [
-    "zombiescantgather.mixins.json"
+    "zombiescantgather.mixins.json",
+    {
+      "config": "zombiescantgather.client.mixins.json",
+      "environment": "client"
+    }
   ],
   "depends": {
     "fabricloader": ">=0.15",
