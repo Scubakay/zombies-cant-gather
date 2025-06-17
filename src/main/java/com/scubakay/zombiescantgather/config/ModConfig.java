@@ -17,15 +17,27 @@ public class ModConfig extends CommandUpdatingConfig {
     @Entry(category = general)
     public static int permissionLevel = 4;
 
+    @Comment(category = tracker)
+    public static Comment trackerDescription;
+
+    @Comment(category = tracker)
+    public static Comment spacer1;
+
     @Entry(category = tracker)
     public static boolean enableTracker = false;
+    //? >= 1.21.5 {
     @Condition(requiredOption = "zombiescantgather:enableTracker", visibleButLocked = true)
-    @Entry(category = tracker)
-    public static boolean showTrackerLogs = false;
-    @Condition(requiredOption = "zombiescantgather:enableTracker", visibleButLocked = true)
+     //?}
     @Entry(category = tracker)
     public static boolean trackCustomNamedMobs = false;
+    //? >= 1.21.5 {
     @Condition(requiredOption = "zombiescantgather:enableTracker", visibleButLocked = true)
+    //?}
+    @Entry(category = tracker)
+    public static boolean showTrackerLogs = false;
+    //? >= 1.21.5 {
+    @Condition(requiredOption = "zombiescantgather:enableTracker", visibleButLocked = true)
+     //?}
     @Entry(category = tracker)
     public static boolean broadcastTrackedMobs = false;
 }

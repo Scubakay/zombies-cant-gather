@@ -11,6 +11,13 @@
     "issues": "https://github.com/Scubakay/zombies-cant-gather/issues",
     "sources": "https://github.com/Scubakay/zombies-cant-gather"
   },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/t8AYBrmqbD"
+      }
+    }
+  },
   "license": "MIT",
   "icon": "assets/zombiescantgather/icon.png",
   "environment": "*",
