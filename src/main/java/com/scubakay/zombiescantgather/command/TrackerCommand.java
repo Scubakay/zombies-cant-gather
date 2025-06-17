@@ -38,12 +38,11 @@ public class TrackerCommand {
     public static final String TRACKER_COMMAND = "tracker";
     public static final String TRACKER_RESET_COMMAND = "reset";
     public static final String TRACKER_TELEPORT_COMMAND = "teleport";
-    public static final String TRACKER_TOGGLE_COMMAND = "toggle";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
         CommandNode<ServerCommandSource> tracker = RootCommand.getRoot(dispatcher).addChild(CommandManager
                 .literal(TRACKER_COMMAND)
-                .requires(ctx -> (ModConfig.enableTracker || hasPermission(ctx, CONFIGURE_MOD_PERMISSION)) && hasPermission(ctx, TRACKER_PERMISSION))
+                .requires(ctx -> ModConfig.enableTracker && hasPermission(ctx, TRACKER_PERMISSION))
                 .executes(TrackerCommand::list)
                 .build());
 
@@ -65,12 +64,6 @@ public class TrackerCommand {
                         .argument("uuid", UuidArgumentType.uuid())
                         .requires(ctx -> ModConfig.enableTracker && hasPermission(ctx, TRACKER_TELEPORT_PERMISSION))
                         .executes(ctx -> teleport(ctx, UuidArgumentType.getUuid(ctx, "uuid"))))
-                .build());
-
-        tracker.addChild(CommandManager
-                .literal(TRACKER_TOGGLE_COMMAND)
-                .requires(ctx -> hasPermission(ctx, CONFIGURE_MOD_PERMISSION))
-                .executes(TrackerCommand::toggle)
                 .build());
     }
 
@@ -120,21 +113,6 @@ public class TrackerCommand {
             player.teleportTo(target);
         } else {
             CommandUtil.reply(context, Text.literal("Only players can run the teleport command"));
-        }
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int toggle(CommandContext<ServerCommandSource> context) {
-        ModConfig.enableTracker = !ModConfig.enableTracker;
-        if (context.getSource().isExecutedByPlayer()) {
-            ServerPlayerEntity player = context.getSource().getPlayer();
-            context.getSource().getServer().getPlayerManager().sendCommandTree(player);
-        }
-
-        if (ModConfig.enableTracker) {
-            CommandUtil.reply(context, "Tracker §aenabled");
-        } else {
-            CommandUtil.reply(context, "Tracker §cdisabled");
         }
         return Command.SINGLE_SUCCESS;
     }
