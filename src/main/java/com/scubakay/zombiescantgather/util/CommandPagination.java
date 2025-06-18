@@ -29,7 +29,7 @@ public class CommandPagination<C, D extends List<C>> {
     }
 
     private Parameters parameters;
-    private final String command;
+    private String command;
     private final CommandContext<ServerCommandSource> source;
     private final D list;
 
@@ -105,6 +105,11 @@ public class CommandPagination<C, D extends List<C>> {
 
     public CommandPagination<C, D> withButton(CommandReply<C> button) {
         this.buttons.add(button);
+        return this;
+    }
+
+    public CommandPagination<C, D> withCommand(String command) {
+        this.command = command;
         return this;
     }
 

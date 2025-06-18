@@ -19,6 +19,7 @@ public class PermissionManager {
     public static final String TRACKER_LOG_PERMISSION = TRACKER_PERMISSION + ".log";
     public static final String TRACKER_RESET_PERMISSION = TRACKER_PERMISSION + ".reset";
     public static final String TRACKER_TELEPORT_PERMISSION = TRACKER_PERMISSION + ".teleport";
+    public static final String TRACKER_PURGE_PERMISSION = TRACKER_PERMISSION + ".purge";
 
     public static final String CONFIGURE_MOD_PERMISSION = ROOT_PERMISSION + ".configure";
 
