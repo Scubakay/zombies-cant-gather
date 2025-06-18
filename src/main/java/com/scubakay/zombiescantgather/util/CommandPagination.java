@@ -30,7 +30,7 @@ public class CommandPagination<C, D extends List<C>> {
 
     private Parameters parameters;
     private final String command;
-    private final CommandContext<ServerCommandSource> commandContext;
+    private final CommandContext<ServerCommandSource> source;
     private final D list;
 
     private Text header;
@@ -39,7 +39,7 @@ public class CommandPagination<C, D extends List<C>> {
     private final List<CommandReply<C>> buttons = new ArrayList<>();
 
     private CommandPagination(CommandContext<ServerCommandSource> context, D list) {
-        this.commandContext = context;
+        this.source = context;
         this.list = list;
 
         // Get command information
@@ -93,7 +93,7 @@ public class CommandPagination<C, D extends List<C>> {
         return this;
     }
 
-    public CommandPagination<C, D> withFooter(Function<Parameters, Text> emptyListMessage) {
+    public CommandPagination<C, D> withEmptyMessage(Function<Parameters, Text> emptyListMessage) {
         this.emptyListMessage = emptyListMessage.apply(this.parameters);
         return this;
     }
@@ -109,25 +109,17 @@ public class CommandPagination<C, D extends List<C>> {
     }
 
     public void display() {
-        if (header != null) {
-            CommandUtil.reply(this.commandContext, header);
-            CommandUtil.reply(this.commandContext, getTableBorder());
-        }
-
-        rows.forEach(row -> CommandUtil.reply(this.commandContext, row));
-
-        final Text pagination = getPagination(emptyListMessage);
-        final Text buttonRow = CommandReply.getButtonRow(null, buttons);
-        if (pagination != null) {
-            CommandUtil.reply(this.commandContext, pagination);
-        } else if (buttonRow != null) {
-            CommandUtil.reply(this.commandContext, getTableBorder());
-        }
-        CommandUtil.reply(this.commandContext, buttonRow);
+        CommandUtil.send(this.source, Text.literal("\n"));
+        if (header != null) CommandUtil.send(this.source, header);
+        CommandUtil.send(this.source, getTableBorder());
+        rows.forEach(row -> CommandUtil.send(this.source, row));
+        CommandUtil.send(this.source, getPagination(emptyListMessage));
+        if (parameters.elementCount == 0 || parameters.pageCount == 1) CommandUtil.send(this.source, getTableBorder());
+        CommandUtil.send(this.source, CommandReply.getButtonRow(null, buttons));
     }
 
     private static MutableText getTableBorder() {
-        return Text.literal(" --------------------------- ")
+        return Text.literal("---------------------------")
                 .styled(style -> style
                         .withColor(Colors.LIGHT_GRAY));
     }
@@ -139,7 +131,7 @@ public class CommandPagination<C, D extends List<C>> {
         } else if (parameters.pageCount() == 1) {
             return null;
         }
-        return Text.literal(" ------- ")
+        return Text.literal("------- ")
                 .withColor(Colors.LIGHT_GRAY)
                 .append(CommandReply.<Parameters>get(params -> Text.literal("<< "))
                         .withToolTip(params -> Text.literal("First Page"))
@@ -166,7 +158,7 @@ public class CommandPagination<C, D extends List<C>> {
                         .withClickable(params -> params.currentPage() < params.pageCount())
                         .withColor(params -> params.currentPage() < params.pageCount() ? Colors.GREEN : Colors.GRAY)
                         .build(parameters))
-                .append(Text.literal(" ------- ").withColor(Colors.LIGHT_GRAY));
+                .append(Text.literal(" -------").withColor(Colors.LIGHT_GRAY));
     }
 
     private CommandReply<C> getRefreshButton() {

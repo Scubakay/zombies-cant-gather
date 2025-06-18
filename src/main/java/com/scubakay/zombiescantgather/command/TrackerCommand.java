@@ -68,7 +68,7 @@ public class TrackerCommand {
 
     public static int list(CommandContext<ServerCommandSource> context) {
         if (!ModConfig.enableTracker) {
-            CommandUtil.reply(context, Text.literal("Tracker is not enabled").withColor(Colors.RED));
+            CommandUtil.send(context, Text.literal("Tracker is not enabled").withColor(Colors.RED));
             return 0;
         }
 
@@ -81,9 +81,9 @@ public class TrackerCommand {
                 .toList();
 
         CommandPagination.builder(context, tracker)
-                .withHeader(parameters -> Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", parameters.elementCount())))
+                .withHeader(parameters -> Text.literal(String.format("§7Tracked §f%s§7 entities with blacklisted items:", parameters.elementCount())))
                 .withRows(TrackerCommand::getTrackerRow, List.of(getTpButton()))
-                .withFooter(parameters -> Text.literal("No mobs with blacklisted items tracked yet"))
+                .withEmptyMessage(parameters -> Text.literal("No mobs with blacklisted items tracked yet"))
                 .withRefreshButton()
                 .display();
         return Command.SINGLE_SUCCESS;
@@ -99,7 +99,7 @@ public class TrackerCommand {
             // Get entity pos and world
             TrackedEntity entity = EntityTracker.getServerState(context.getSource().getServer()).get(uuid);
             if (entity == null) {
-                CommandUtil.reply(context, Text.literal("Can't teleport: entity removed from tracker").withColor(Colors.RED));
+                CommandUtil.send(context, Text.literal("Can't teleport: entity removed from tracker").withColor(Colors.RED));
                 return 0;
             }
             RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(entity.getDimension()));
@@ -111,7 +111,7 @@ public class TrackerCommand {
             TeleportTarget target = new TeleportTarget(world, entity.getPos().toBottomCenterPos(), Vec3d.ZERO, player.getYaw(), player.getPitch(), TeleportTarget.NO_OP);
             player.teleportTo(target);
         } else {
-            CommandUtil.reply(context, Text.literal("Only players can run the teleport command"));
+            CommandUtil.send(context, Text.literal("Only players can run the teleport command"));
         }
         return Command.SINGLE_SUCCESS;
     }

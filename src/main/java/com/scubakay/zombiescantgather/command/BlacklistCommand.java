@@ -28,27 +28,6 @@ import static com.scubakay.zombiescantgather.command.PermissionManager.*;
 
 @SuppressWarnings("SameReturnValue")
 public class BlacklistCommand {
-    public enum Blacklist {
-        PIGLIN("piglin", "piglins"),
-        ZOMBIE("zombie", "zombies");
-
-        private final String name;
-        private final String plural;
-
-        Blacklist(final String name, final String plural) {
-            this.name = name;
-            this.plural = plural;
-        }
-
-        public String toString() {
-            return name;
-        }
-
-        public String toPlural() {
-            return plural;
-        }
-    }
-
     private static final String ITEM_ARGUMENT = "item";
 
     private static final String ADDED_REPLY = "§f%s§7 can't gather §f%s§7";
@@ -56,13 +35,15 @@ public class BlacklistCommand {
     private static final String DUPLICATE_REPLY = "§f%s§7 is already on the §f%s§7 blacklist";
     private static final String NOT_FOUND_REPLY = "§f%s§7 not found in §f%s§7 blacklist";
     private static final String RESET_ITEMS_REPLY = "§7Reset §f%s§7 items";
-    private static final String BLACKLIST_HEADER_REPLY = "\n§f%s§7 can't pick up §f%s§7 items:";
+    private static final String BLACKLIST_HEADER_REPLY = "§f%s§7 can't pick up §f%s§7 items:";
     private static final String BLACKLIST_ROW_REPLY = "§f%s§7";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registry, RegistrationEnvironment ignoredEnv) {
         RootCommand.getRoot(dispatcher).addChild(getBlacklistNode(registry, Blacklist.PIGLIN));
         RootCommand.getRoot(dispatcher).addChild(getBlacklistNode(registry, Blacklist.ZOMBIE));
     }
+
+    //region Command Nodes
 
     private static LiteralCommandNode<ServerCommandSource> getBlacklistNode(CommandRegistryAccess registry, Blacklist blacklist) {
         LiteralCommandNode<ServerCommandSource> piglinNode = getEntityNode(blacklist); // zcg <entity>
@@ -72,76 +53,16 @@ public class BlacklistCommand {
         return piglinNode;
     }
 
-    public static int add(CommandContext<ServerCommandSource> context, Blacklist type, ItemStackArgument itemStackArgument) {
-        String item = itemStackArgument.getItem().toString();
-        List<String> list = switch (type) {
-            case PIGLIN -> ModConfig.piglinsBlacklist;
-            case ZOMBIE -> ModConfig.zombiesBlacklist;
-        };
-        if (list.contains(item)) {
-            CommandUtil.reply(context, DUPLICATE_REPLY, item, type);
-            return 0;
-        }
-        list.add(item);
-        CommandReply.<Blacklist>get(t -> Text.literal(String.format(ADDED_REPLY, t.toPlural(), item)))
-                .withButtons(List.of(getListButton()))
-                .display(context, type);
-        return Command.SINGLE_SUCCESS;
+    private static LiteralCommandNode<ServerCommandSource> getEntityNode(Blacklist entity) {
+        return CommandManager
+                .literal(entity.toString())
+                .requires(ctx -> hasPermission(ctx, BLACKLIST_PERMISSION))
+                .executes(ctx -> list(ctx, entity))
+                .then(CommandPagination.getPageCommand(ctx -> list(ctx, entity)))
+                .build();
     }
 
-    public static int remove(CommandContext<ServerCommandSource> context, Blacklist type, ItemStackArgument itemStackArgument) {
-        String item = itemStackArgument.getItem().toString();
-        List<String> list = switch (type) {
-            case PIGLIN -> ModConfig.piglinsBlacklist;
-            case ZOMBIE -> ModConfig.zombiesBlacklist;
-        };
-        int index = list.indexOf(item);
-        if (index < 0) {
-            CommandUtil.reply(context, NOT_FOUND_REPLY, item, type);
-            return 0;
-        }
-        list.remove(item);
-        CommandReply.<Blacklist>get(t -> Text.literal(String.format(REMOVED_REPLY, t.toPlural(), item)))
-                .withButtons(List.of(getListButton()))
-                .display(context, type);
-        return Command.SINGLE_SUCCESS;
-    }
-
-    public static int list(CommandContext<ServerCommandSource> ctx, Blacklist type) {
-        List<String> items = switch (type) {
-            case PIGLIN -> ModConfig.piglinsBlacklist;
-            case ZOMBIE -> ModConfig.zombiesBlacklist;
-        };
-        CommandPagination.builder(ctx, items)
-                .withPageSize(5)
-                .withHeader(parameters -> Text.literal(String.format(BLACKLIST_HEADER_REPLY, type.toPlural(), parameters.elementCount())))
-                .withRows(item -> Text.literal(String.format(BLACKLIST_ROW_REPLY, item)), List.of(getRemoveButton(type)))
-                .withFooter(parameters -> Text.literal(String.format("No items on %s blacklist", type)))
-                .withButton(getAddButton(type))
-                .display();
-        return Command.SINGLE_SUCCESS;
-    }
-
-    public static int reset(CommandContext<ServerCommandSource> context, Blacklist type) {
-        switch (type) {
-            case PIGLIN -> ModConfig.piglinsBlacklist.clear();
-            case ZOMBIE -> ModConfig.zombiesBlacklist.clear();
-        }
-
-        CommandUtil.reply(context, RESET_ITEMS_REPLY, type);
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static CommandReply<String> getAddButton(Blacklist type) {
-        return CommandReply.<String>get(item -> Text.literal("Add"))
-                .requires(player -> !hasPermission(player, BLACKLIST_ADD_PERMISSION))
-                .withToolTip(item -> Text.literal("Blacklist an item"))
-                .withSuggestion(item -> String.format("/zcg %s add ", type))
-                .withColor(item -> Colors.BLUE)
-                .withBrackets();
-    }
-
-    public static LiteralCommandNode<ServerCommandSource> getAddNode(CommandRegistryAccess registry, Blacklist entityType) {
+    private static LiteralCommandNode<ServerCommandSource> getAddNode(CommandRegistryAccess registry, Blacklist entityType) {
         LiteralCommandNode<ServerCommandSource> addNode = CommandManager
                 .literal("add")
                 .requires(ctx -> PermissionManager.hasPermission(ctx, BLACKLIST_ADD_PERMISSION))
@@ -169,7 +90,7 @@ public class BlacklistCommand {
         return addNode;
     }
 
-    public static LiteralCommandNode<ServerCommandSource> getRemoveNode(CommandRegistryAccess registry, Blacklist entityType) {
+    private static LiteralCommandNode<ServerCommandSource> getRemoveNode(CommandRegistryAccess registry, Blacklist entityType) {
         LiteralCommandNode<ServerCommandSource> removeNode = CommandManager
                 .literal("remove")
                 .requires(ctx -> PermissionManager.hasPermission(ctx, BLACKLIST_ADD_PERMISSION))
@@ -194,13 +115,81 @@ public class BlacklistCommand {
         return removeNode;
     }
 
-    public static LiteralCommandNode<ServerCommandSource> getResetNode(Blacklist entityType) {
+    private static LiteralCommandNode<ServerCommandSource> getResetNode(Blacklist entityType) {
         return CommandManager
                 .literal("reset")
                 .requires(ctx -> hasPermission(ctx, BLACKLIST_RESET_PERMISSION))
                 .executes(ctx -> reset(ctx, entityType))
                 .build();
     }
+
+    //endregion
+
+    //region Command Handlers
+
+    private static int list(CommandContext<ServerCommandSource> ctx, Blacklist type) {
+        List<String> items = switch (type) {
+            case PIGLIN -> ModConfig.piglinsBlacklist;
+            case ZOMBIE -> ModConfig.zombiesBlacklist;
+        };
+        CommandPagination.builder(ctx, items)
+                .withPageSize(5)
+                .withHeader(parameters -> Text.literal(String.format(BLACKLIST_HEADER_REPLY, type.toPlural(), parameters.elementCount())))
+                .withRows(item -> Text.literal(String.format(BLACKLIST_ROW_REPLY, item)), List.of(getRemoveButton(type)))
+                .withEmptyMessage(parameters -> Text.literal(String.format("No items on %s blacklist", type)))
+                .withButton(getAddButton(type))
+                .display();
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int add(CommandContext<ServerCommandSource> context, Blacklist type, ItemStackArgument itemStackArgument) {
+        String item = itemStackArgument.getItem().toString();
+        List<String> list = switch (type) {
+            case PIGLIN -> ModConfig.piglinsBlacklist;
+            case ZOMBIE -> ModConfig.zombiesBlacklist;
+        };
+        if (list.contains(item)) {
+            CommandUtil.send(context, DUPLICATE_REPLY, item, type);
+            return 0;
+        }
+        list.add(item);
+        CommandReply.<Blacklist>get(t -> Text.literal(String.format(ADDED_REPLY, t.toPlural(), item)))
+                .withButtons(List.of(getListButton()))
+                .display(context, type);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int remove(CommandContext<ServerCommandSource> context, Blacklist type, ItemStackArgument itemStackArgument) {
+        String item = itemStackArgument.getItem().toString();
+        List<String> list = switch (type) {
+            case PIGLIN -> ModConfig.piglinsBlacklist;
+            case ZOMBIE -> ModConfig.zombiesBlacklist;
+        };
+        int index = list.indexOf(item);
+        if (index < 0) {
+            CommandUtil.send(context, NOT_FOUND_REPLY, item, type);
+            return 0;
+        }
+        list.remove(item);
+        CommandReply.<Blacklist>get(t -> Text.literal(String.format(REMOVED_REPLY, t.toPlural(), item)))
+                .withButtons(List.of(getListButton()))
+                .display(context, type);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int reset(CommandContext<ServerCommandSource> context, Blacklist type) {
+        switch (type) {
+            case PIGLIN -> ModConfig.piglinsBlacklist.clear();
+            case ZOMBIE -> ModConfig.zombiesBlacklist.clear();
+        }
+
+        CommandUtil.send(context, RESET_ITEMS_REPLY, type);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    //endregion
+
+    //region Utility
 
     private static CommandReply<Blacklist> getListButton() {
         return CommandReply.<Blacklist>get(t -> Text.literal("List"))
@@ -211,8 +200,17 @@ public class BlacklistCommand {
                 .withBrackets();
     }
 
+    private static CommandReply<String> getAddButton(Blacklist type) {
+        return CommandReply.<String>get(item -> Text.literal("Add"))
+                .requires(player -> !hasPermission(player, BLACKLIST_ADD_PERMISSION))
+                .withToolTip(item -> Text.literal("Blacklist an item"))
+                .withSuggestion(item -> String.format("/zcg %s add ", type))
+                .withColor(item -> Colors.BLUE)
+                .withBrackets();
+    }
+
     private static @NotNull CommandReply<String> getRemoveButton(Blacklist type) {
-        return CommandReply.<String>get(item -> Text.literal("Remove"))
+        return CommandReply.<String>get(item -> Text.literal("X"))
                 .requires(player -> !hasPermission(player, BLACKLIST_REMOVE_PERMISSION))
                 .withToolTip(item -> Text.literal(String.format("Remove %s from blacklist", item)))
                 .withCommand(id -> String.format("/zcg %s remove %s", type, id))
@@ -220,12 +218,26 @@ public class BlacklistCommand {
                 .withBrackets();
     }
 
-    private static LiteralCommandNode<ServerCommandSource> getEntityNode(Blacklist entity) {
-        return CommandManager
-                .literal(entity.toString())
-                .requires(ctx -> hasPermission(ctx, BLACKLIST_PERMISSION))
-                .executes(ctx -> list(ctx, entity))
-                .then(CommandPagination.getPageCommand(ctx -> list(ctx, entity)))
-                .build();
+    //endregion
+
+    public enum Blacklist {
+        PIGLIN("piglin", "piglins"),
+        ZOMBIE("zombie", "zombies");
+
+        private final String name;
+        private final String plural;
+
+        Blacklist(final String name, final String plural) {
+            this.name = name;
+            this.plural = plural;
+        }
+
+        public String toString() {
+            return name;
+        }
+
+        public String toPlural() {
+            return plural;
+        }
     }
 }

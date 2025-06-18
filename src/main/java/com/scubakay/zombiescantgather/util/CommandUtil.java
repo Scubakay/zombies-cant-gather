@@ -7,13 +7,13 @@ import net.minecraft.text.*;
 import org.apache.commons.lang3.StringUtils;
 
 public class CommandUtil {
-    public static void reply(CommandContext<ServerCommandSource> context, String reply, Object... args) {
+    public static void send(CommandContext<ServerCommandSource> context, String reply, Object... args) {
         String message = StringUtils.capitalize(String.format(reply, args));
-        context.getSource().sendFeedback(() -> Text.literal(StringUtil.capitalize(message)), false);
+        context.getSource().sendFeedback(() -> getResetSpace().append(Text.literal(StringUtil.capitalize(message))), false);
     }
 
-    public static void reply(CommandContext<ServerCommandSource> context, Text reply) {
-        context.getSource().sendFeedback(() -> reply, false);
+    public static void send(CommandContext<ServerCommandSource> context, Text reply) {
+        context.getSource().sendFeedback(() -> getResetSpace().append(reply), false);
     }
 
     /**

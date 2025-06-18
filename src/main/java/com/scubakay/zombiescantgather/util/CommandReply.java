@@ -101,7 +101,7 @@ public class CommandReply<C> {
     }
 
     public void display(CommandContext<ServerCommandSource> source, C context) {
-        CommandUtil.reply(source, build(context));
+        CommandUtil.send(source, build(context));
     }
 
     private static Style styleWithTooltip(Style style, @Nullable Text tooltip) {
