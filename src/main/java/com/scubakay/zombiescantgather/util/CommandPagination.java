@@ -12,7 +12,6 @@ import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 public class CommandPagination<C, D extends List<C>> {
@@ -31,16 +30,16 @@ public class CommandPagination<C, D extends List<C>> {
 
     private Parameters parameters;
     private final String command;
-    private final CommandContext<ServerCommandSource> context;
+    private final CommandContext<ServerCommandSource> source;
     private final D list;
 
     private Text header;
-    private List<Text> rows = new ArrayList<>();
+    private List<MutableText> rows = new ArrayList<>();
     private Text emptyListMessage = Text.literal("List is empty");
-    private final List<Text> buttons = new ArrayList<>();
+    private final List<CommandReply<C>> buttons = new ArrayList<>();
 
     private CommandPagination(CommandContext<ServerCommandSource> context, D list) {
-        this.context = context;
+        this.source = context;
         this.list = list;
 
         // Get command information
@@ -88,13 +87,13 @@ public class CommandPagination<C, D extends List<C>> {
         return this;
     }
 
-    public CommandPagination<C, D> withRows(Function<C, Text> rowMapper) {
-        this.rows = this.list.subList(parameters.fromIndex, parameters.toIndex)
-                .stream().map(rowMapper).toList();
+    public CommandPagination<C, D> withRows(Function<C, MutableText> rowMapper, List<CommandReply<C>> buttons) {
+        this.rows = this.list.subList(parameters.fromIndex, parameters.toIndex).stream().map(row -> CommandReply.getButtonRow(row, buttons)
+                .append(rowMapper.apply(row))).toList();
         return this;
     }
 
-    public CommandPagination<C, D> withFooter(Function<Parameters, Text> emptyListMessage) {
+    public CommandPagination<C, D> withEmptyMessage(Function<Parameters, Text> emptyListMessage) {
         this.emptyListMessage = emptyListMessage.apply(this.parameters);
         return this;
     }
@@ -104,81 +103,74 @@ public class CommandPagination<C, D extends List<C>> {
         return this;
     }
 
+    public CommandPagination<C, D> withButton(CommandReply<C> button) {
+        this.buttons.add(button);
+        return this;
+    }
+
     public void display() {
-        if (header != null) {
-            CommandUtil.reply(context, header);
-            CommandUtil.reply(context, Text.literal(" --------------------------- ")
-                    .styled(style -> style
-                            .withColor(Colors.LIGHT_GRAY)));
-        }
+        CommandUtil.send(this.source, Text.literal("\n"));
+        if (header != null) CommandUtil.send(this.source, header);
+        CommandUtil.send(this.source, getTableBorder());
+        rows.forEach(row -> CommandUtil.send(this.source, row));
+        CommandUtil.send(this.source, getPagination(emptyListMessage));
+        CommandUtil.send(this.source, CommandReply.getButtonRow(null, buttons));
+    }
 
-        rows.forEach(row -> CommandUtil.reply(context, row));
-
-        CommandUtil.reply(context, getPagination(emptyListMessage));
-
-            AtomicReference<Text> buttonRow = new AtomicReference<>(null);
-            buttons.forEach(button -> {
-                if (buttonRow.get() == null) {
-                    buttonRow.set(button);
-                } else {
-                    buttonRow.set(buttonRow.get().copy().append(button));
-                }
-            });
-            if (buttonRow.get() != null) {
-                CommandUtil.reply(context, buttonRow.get());
-            }
+    private static MutableText getTableBorder() {
+        return Text.literal("---------------------------")
+                .styled(style -> style
+                        .withColor(Colors.LIGHT_GRAY));
     }
 
     private Text getPagination(Text emptyMessage) {
         if (parameters.pageCount() == 0) {
             return emptyMessage.copy().styled(style -> style
-                    .withFormatting(Formatting.GREEN));
+                    .withFormatting(Formatting.GREEN))
+                    .append(getTableBorder());
         } else if (parameters.pageCount() == 1) {
-            return Text.empty();
+            return getTableBorder();
         }
-        return Text.literal(" ------- ").withColor(Colors.LIGHT_GRAY)
-                .append(Text.literal("<< ")
-                        .styled(style -> getPageLinkStyle(style, parameters.currentPage() > 1, "First page", 1)))
-                .append(Text.literal("< ")
-                        .styled(style -> getPageLinkStyle(style, parameters.currentPage() > 1, "Previous page", parameters.currentPage() - 1)))
-                .append(Text.literal(parameters.currentPage() + " / " + parameters.pageCount())
-                        .styled(style -> style
-                                .withColor(Colors.WHITE)
-                                //? >=1.21.5 {
-                                .withClickEvent(new ClickEvent.ChangePage(1))
-                                .withHoverEvent(new HoverEvent.ShowText(Text.literal(parameters.currentPage() + "/" + parameters.pageCount())))))
-                //?} else {
-                /*.withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1"))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(parameters.currentPage() + "/" + parameters.pageCount())))))
-        *///?}
-                .append(Text.literal(" >")
-                        .styled(style -> getPageLinkStyle(style, parameters.currentPage() < parameters.pageCount(), "Next page", parameters.currentPage() + 1)))
-                .append(Text.literal(" >>")
-                        .styled(style -> getPageLinkStyle(style, parameters.currentPage() < parameters.pageCount(), "Last page", parameters.pageCount())))
-                .append(Text.literal(" ------- ").withColor(Colors.LIGHT_GRAY));
+        return Text.literal("------- ")
+                .withColor(Colors.LIGHT_GRAY)
+                .append(CommandReply.<Parameters>get(params -> Text.literal("<< "))
+                        .withToolTip(params -> Text.literal("First Page"))
+                        .withCommand(params -> getPageLink(1))
+                        .withClickable(params -> params.currentPage() > 1)
+                        .withColor(params -> params.currentPage() > 1 ? Colors.GREEN : Colors.GRAY)
+                        .build(parameters))
+                .append(CommandReply.<Parameters>get(params -> Text.literal("< "))
+                        .withToolTip(params -> Text.literal("Previous page"))
+                        .withCommand(params -> getPageLink(params.currentPage() - 1))
+                        .withClickable(params -> params.currentPage() > 1)
+                        .withColor(params -> params.currentPage() > 1 ? Colors.GREEN : Colors.GRAY)
+                        .build(parameters))
+                .append(Text.literal(parameters.currentPage() + " / " + parameters.pageCount()))
+                .append(CommandReply.<Parameters>get(params -> Text.literal(" >"))
+                        .withToolTip(params -> Text.literal("Next page"))
+                        .withCommand(params -> getPageLink(params.currentPage() + 1))
+                        .withClickable(params -> params.currentPage() < params.pageCount())
+                        .withColor(params -> params.currentPage() < params.pageCount() ? Colors.GREEN : Colors.GRAY)
+                        .build(parameters))
+                .append(CommandReply.<Parameters>get(params -> Text.literal(" >>"))
+                        .withToolTip(params -> Text.literal("Last page"))
+                        .withCommand(params -> getPageLink(params.pageCount()))
+                        .withClickable(params -> params.currentPage() < params.pageCount())
+                        .withColor(params -> params.currentPage() < params.pageCount() ? Colors.GREEN : Colors.GRAY)
+                        .build(parameters))
+                .append(Text.literal(" -------").withColor(Colors.LIGHT_GRAY));
     }
 
-    private MutableText getRefreshButton() {
-        return Text.literal("[Refresh]").styled(style ->
-                getPageLinkStyle(style, true, "Refresh page", parameters.currentPage())
-                        .withColor(Colors.YELLOW));
+    private CommandReply<C> getRefreshButton() {
+        return CommandReply.<C>get(title -> Text.literal("Refresh"))
+                .withToolTip(tooltip -> Text.literal("Refresh page"))
+                .withCommand(command -> getPageLink(parameters.currentPage()))
+                .withColor(color -> Colors.YELLOW)
+                .withBrackets();
     }
 
     private String getPageLink(int page) {
         return String.format("/%s page %s", this.command, page);
-    }
-
-    private Style getPageLinkStyle(Style style, boolean clickable, String tooltip, int page) {
-        //? >=1.21.5 {
-        ClickEvent click = clickable ? new ClickEvent.RunCommand(getPageLink(page)) : new ClickEvent.ChangePage(1);
-        HoverEvent hover = new HoverEvent.ShowText(Text.literal(tooltip));
-        //?} else {
-        /*ClickEvent click = clickable ? new ClickEvent(ClickEvent.Action.RUN_COMMAND, getPageLink(page)) : new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1");
-        HoverEvent hover =new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(tooltip));
-        *///?}
-        return style.withColor(clickable ? Colors.GREEN : Colors.GRAY)
-                .withClickEvent(click)
-                .withHoverEvent(hover);
     }
 
     @Override
