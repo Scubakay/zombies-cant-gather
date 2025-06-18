@@ -4,7 +4,6 @@ import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.loader.impl.util.StringUtil;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.*;
-import net.minecraft.util.Formatting;
 import org.apache.commons.lang3.StringUtils;
 
 public class CommandUtil {
@@ -21,22 +20,7 @@ public class CommandUtil {
      * Just a space but it resets the click/hover/color styles
      */
     public static MutableText getResetSpace() {
-        return Text.literal(" ").styled(style -> getResetStyle(style).withFormatting(Formatting.WHITE));
-    }
-
-    /**
-     * Hacky change page 1 and empty tooltip to effectively reset the style
-     */
-    public static Style getResetStyle(Style style) {
-        //? >=1.21.5 {
-        ClickEvent click = new ClickEvent.ChangePage(1);
-        HoverEvent hover = new HoverEvent.ShowText(Text.empty());
-        //?} else {
-        /*ClickEvent click = new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1");
-        HoverEvent hover =new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.empty());
-        *///?}
-        return style.withClickEvent(click)
-                .withHoverEvent(hover);
+        return Text.literal(" ").styled(style -> Style.EMPTY);
     }
 
     /**

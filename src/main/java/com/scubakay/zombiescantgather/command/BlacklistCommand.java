@@ -6,7 +6,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.scubakay.zombiescantgather.config.ModConfig;
-import com.scubakay.zombiescantgather.util.CommandButton;
+import com.scubakay.zombiescantgather.util.CommandReply;
 import com.scubakay.zombiescantgather.util.CommandPagination;
 import com.scubakay.zombiescantgather.util.CommandUtil;
 import net.minecraft.command.CommandRegistryAccess;
@@ -17,13 +17,11 @@ import net.minecraft.registry.Registries;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.CommandManager.RegistrationEnvironment;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
@@ -85,8 +83,9 @@ public class BlacklistCommand {
             return 0;
         }
         list.add(item);
-        CommandUtil.reply(context, CommandButton.getButtonRow(type, List.of(getListButton()))
-                .append(getReply(ADDED_REPLY, type, item)));
+        CommandReply.<Blacklist>get(t -> Text.literal(String.format(ADDED_REPLY, t.toPlural(), item)))
+                .withButtons(List.of(getListButton()))
+                .display(context, type);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -102,8 +101,9 @@ public class BlacklistCommand {
             return 0;
         }
         list.remove(item);
-        CommandUtil.reply(context, CommandButton.getButtonRow(type, List.of(getListButton()))
-                .append(getReply(REMOVED_REPLY, type, item)));
+        CommandReply.<Blacklist>get(t -> Text.literal(String.format(REMOVED_REPLY, t.toPlural(), item)))
+                .withButtons(List.of(getListButton()))
+                .display(context, type);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -115,7 +115,7 @@ public class BlacklistCommand {
         CommandPagination.builder(ctx, items)
                 .withPageSize(5)
                 .withHeader(parameters -> Text.literal(String.format(BLACKLIST_HEADER_REPLY, type.toPlural(), parameters.elementCount())))
-                .withRows(getRow(), List.of(getRemoveButton(type)))
+                .withRows(item -> Text.literal(String.format(BLACKLIST_ROW_REPLY, item)), List.of(getRemoveButton(type)))
                 .withFooter(parameters -> Text.literal(String.format("No items on %s blacklist", type)))
                 .withButton(getAddButton(type))
                 .display();
@@ -132,40 +132,13 @@ public class BlacklistCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static MutableText getReply(String message, Blacklist type, String item) {
-        return Text.literal(String.format(message, type.toPlural(), item))
-                .styled(CommandUtil::getResetStyle);
-    }
-
-    private static Function<String, MutableText> getRow() {
-        return item -> Text.literal(String.format(BLACKLIST_ROW_REPLY, item)).styled(CommandUtil::getResetStyle);
-    }
-
-    private static CommandButton<String> getAddButton(Blacklist type) {
-        return CommandButton.<String>suggest(item -> Text.literal("Add"))
+    private static CommandReply<String> getAddButton(Blacklist type) {
+        return CommandReply.<String>get(item -> Text.literal("Add"))
                 .requires(player -> !hasPermission(player, BLACKLIST_ADD_PERMISSION))
                 .withToolTip(item -> Text.literal("Blacklist an item"))
-                .withCommand(item -> String.format("/zcg %s add ", type))
+                .withSuggestion(item -> String.format("/zcg %s add ", type))
                 .withColor(item -> Colors.BLUE)
                 .withBrackets();
-    }
-
-    private static @NotNull CommandButton<String> getRemoveButton(Blacklist type) {
-        return CommandButton.<String>run(item -> Text.literal("Remove"))
-                .requires(player -> !hasPermission(player, BLACKLIST_REMOVE_PERMISSION))
-                .withToolTip(item -> Text.literal(String.format("Remove %s from blacklist", item)))
-                .withCommand(id -> String.format("/zcg %s remove %s", type, id))
-                .withColor(item -> Colors.RED)
-                .withBrackets();
-    }
-
-    private static LiteralCommandNode<ServerCommandSource> getEntityNode(Blacklist entity) {
-        return CommandManager
-                .literal(entity.toString())
-                .requires(ctx -> hasPermission(ctx, BLACKLIST_PERMISSION))
-                .executes(ctx -> list(ctx, entity))
-                .then(CommandPagination.getPageCommand(ctx -> list(ctx, entity)))
-                .build();
     }
 
     public static LiteralCommandNode<ServerCommandSource> getAddNode(CommandRegistryAccess registry, Blacklist entityType) {
@@ -229,12 +202,30 @@ public class BlacklistCommand {
                 .build();
     }
 
-    private static CommandButton<Blacklist> getListButton() {
-        return CommandButton.<Blacklist>run(t -> Text.literal("List"))
+    private static CommandReply<Blacklist> getListButton() {
+        return CommandReply.<Blacklist>get(t -> Text.literal("List"))
                 .requires(player -> !hasPermission(player, BLACKLIST_PERMISSION))
                 .withToolTip(t -> Text.literal(String.format("View %s blacklist", t)))
                 .withCommand(t -> String.format("/zcg %s", t))
                 .withColor(t -> Colors.YELLOW)
                 .withBrackets();
+    }
+
+    private static @NotNull CommandReply<String> getRemoveButton(Blacklist type) {
+        return CommandReply.<String>get(item -> Text.literal("Remove"))
+                .requires(player -> !hasPermission(player, BLACKLIST_REMOVE_PERMISSION))
+                .withToolTip(item -> Text.literal(String.format("Remove %s from blacklist", item)))
+                .withCommand(id -> String.format("/zcg %s remove %s", type, id))
+                .withColor(item -> Colors.RED)
+                .withBrackets();
+    }
+
+    private static LiteralCommandNode<ServerCommandSource> getEntityNode(Blacklist entity) {
+        return CommandManager
+                .literal(entity.toString())
+                .requires(ctx -> hasPermission(ctx, BLACKLIST_PERMISSION))
+                .executes(ctx -> list(ctx, entity))
+                .then(CommandPagination.getPageCommand(ctx -> list(ctx, entity)))
+                .build();
     }
 }

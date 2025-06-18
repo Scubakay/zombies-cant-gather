@@ -36,7 +36,7 @@ public class CommandPagination<C, D extends List<C>> {
     private Text header;
     private List<MutableText> rows = new ArrayList<>();
     private Text emptyListMessage = Text.literal("List is empty");
-    private final List<CommandButton<C>> buttons = new ArrayList<>();
+    private final List<CommandReply<C>> buttons = new ArrayList<>();
 
     private CommandPagination(CommandContext<ServerCommandSource> context, D list) {
         this.commandContext = context;
@@ -87,8 +87,8 @@ public class CommandPagination<C, D extends List<C>> {
         return this;
     }
 
-    public CommandPagination<C, D> withRows(Function<C, MutableText> rowMapper, List<CommandButton<C>> buttons) {
-        this.rows = this.list.subList(parameters.fromIndex, parameters.toIndex).stream().map(row -> CommandButton.getButtonRow(row, buttons)
+    public CommandPagination<C, D> withRows(Function<C, MutableText> rowMapper, List<CommandReply<C>> buttons) {
+        this.rows = this.list.subList(parameters.fromIndex, parameters.toIndex).stream().map(row -> CommandReply.getButtonRow(row, buttons)
                 .append(rowMapper.apply(row))).toList();
         return this;
     }
@@ -103,7 +103,7 @@ public class CommandPagination<C, D extends List<C>> {
         return this;
     }
 
-    public CommandPagination<C, D> withButton(CommandButton<C> button) {
+    public CommandPagination<C, D> withButton(CommandReply<C> button) {
         this.buttons.add(button);
         return this;
     }
@@ -117,7 +117,7 @@ public class CommandPagination<C, D extends List<C>> {
         rows.forEach(row -> CommandUtil.reply(this.commandContext, row));
 
         final Text pagination = getPagination(emptyListMessage);
-        final Text buttonRow = CommandButton.getButtonRow(null, buttons);
+        final Text buttonRow = CommandReply.getButtonRow(null, buttons);
         if (pagination != null) {
             CommandUtil.reply(this.commandContext, pagination);
         } else if (buttonRow != null) {
@@ -141,26 +141,26 @@ public class CommandPagination<C, D extends List<C>> {
         }
         return Text.literal(" ------- ")
                 .withColor(Colors.LIGHT_GRAY)
-                .append(CommandButton.<Parameters>run(params -> Text.literal("<< "))
+                .append(CommandReply.<Parameters>get(params -> Text.literal("<< "))
                         .withToolTip(params -> Text.literal("First Page"))
                         .withCommand(params -> getPageLink(1))
                         .withClickable(params -> params.currentPage() > 1)
                         .withColor(params -> params.currentPage() > 1 ? Colors.GREEN : Colors.GRAY)
                         .build(parameters))
-                .append(CommandButton.<Parameters>run(params -> Text.literal("< "))
+                .append(CommandReply.<Parameters>get(params -> Text.literal("< "))
                         .withToolTip(params -> Text.literal("Previous page"))
                         .withCommand(params -> getPageLink(params.currentPage() - 1))
                         .withClickable(params -> params.currentPage() > 1)
                         .withColor(params -> params.currentPage() > 1 ? Colors.GREEN : Colors.GRAY)
                         .build(parameters))
                 .append(Text.literal(parameters.currentPage() + " / " + parameters.pageCount()))
-                .append(CommandButton.<Parameters>run(params -> Text.literal(" >"))
+                .append(CommandReply.<Parameters>get(params -> Text.literal(" >"))
                         .withToolTip(params -> Text.literal("Next page"))
                         .withCommand(params -> getPageLink(params.currentPage() + 1))
                         .withClickable(params -> params.currentPage() < params.pageCount())
                         .withColor(params -> params.currentPage() < params.pageCount() ? Colors.GREEN : Colors.GRAY)
                         .build(parameters))
-                .append(CommandButton.<Parameters>run(params -> Text.literal(" >>"))
+                .append(CommandReply.<Parameters>get(params -> Text.literal(" >>"))
                         .withToolTip(params -> Text.literal("Last page"))
                         .withCommand(params -> getPageLink(params.pageCount()))
                         .withClickable(params -> params.currentPage() < params.pageCount())
@@ -169,8 +169,8 @@ public class CommandPagination<C, D extends List<C>> {
                 .append(Text.literal(" ------- ").withColor(Colors.LIGHT_GRAY));
     }
 
-    private CommandButton<C> getRefreshButton() {
-        return CommandButton.<C>run(title -> Text.literal("Refresh"))
+    private CommandReply<C> getRefreshButton() {
+        return CommandReply.<C>get(title -> Text.literal("Refresh"))
                 .withToolTip(tooltip -> Text.literal("Refresh page"))
                 .withCommand(command -> getPageLink(parameters.currentPage()))
                 .withColor(color -> Colors.YELLOW)

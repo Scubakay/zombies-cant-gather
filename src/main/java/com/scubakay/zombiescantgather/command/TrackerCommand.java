@@ -7,7 +7,7 @@ import com.mojang.brigadier.tree.CommandNode;
 import com.scubakay.zombiescantgather.config.ModConfig;
 import com.scubakay.zombiescantgather.state.EntityTracker;
 import com.scubakay.zombiescantgather.state.TrackedEntity;
-import com.scubakay.zombiescantgather.util.CommandButton;
+import com.scubakay.zombiescantgather.util.CommandReply;
 import com.scubakay.zombiescantgather.util.CommandPagination;
 import com.scubakay.zombiescantgather.util.CommandUtil;
 import net.minecraft.command.CommandRegistryAccess;
@@ -137,8 +137,8 @@ public class TrackerCommand {
                         .withColor(entity.getDimensionColor())).append(getTooltipDescription(entity));
     }
 
-    private static CommandButton<TrackedEntity> getTpButton() {
-        return CommandButton.<TrackedEntity>run(item -> Text.literal("TP"))
+    private static CommandReply<TrackedEntity> getTpButton() {
+        return CommandReply.<TrackedEntity>get(item -> Text.literal("TP"))
                 .requires(player -> !hasPermission(player, PermissionManager.TRACKER_TELEPORT_PERMISSION))
                 .withToolTip(TrackerCommand::getTpButtonToolTip)
                 .withCommand(TrackerCommand::getTpCommand)
