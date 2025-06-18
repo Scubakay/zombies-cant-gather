@@ -132,6 +132,7 @@ public class CommandPagination<C, D extends List<C>> {
         if (parameters.pageCount() == 0) {
             return emptyMessage.copy().styled(style -> style
                     .withFormatting(Formatting.GREEN))
+                    .append(Text.literal("\n"))
                     .append(getTableBorder());
         } else if (parameters.pageCount() == 1) {
             return getTableBorder();

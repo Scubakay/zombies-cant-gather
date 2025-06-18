@@ -73,20 +73,6 @@ public class TrackerCommand {
                 .build());
     }
 
-    private static int purge(CommandContext<ServerCommandSource> ctx) {
-        List<TrackedEntity> tracker = EntityTracker
-                .getServerState(ctx.getSource().getServer())
-                .purge(ctx);
-        CommandPagination.builder(ctx, tracker)
-                .withCommand(String.format("/%s %s", ROOT_COMMAND, TRACKER_COMMAND))
-                .withHeader(parameters -> Text.literal(String.format("§7Tracked §f%s§7 entities with blacklisted items:", parameters.elementCount())))
-                .withRows(TrackerCommand::getTrackerRow, List.of(getTpButton()))
-                .withEmptyMessage(parameters -> Text.literal("No mobs with blacklisted items tracked yet"))
-                .withRefreshButton()
-                .display();
-        return Command.SINGLE_SUCCESS;
-    }
-
     //region Command Handlers
 
     private static int list(CommandContext<ServerCommandSource> ctx) {
@@ -98,6 +84,22 @@ public class TrackerCommand {
         List<TrackedEntity> tracker = EntityTracker.getServerState(ctx.getSource().getServer()).getList();
         CommandPagination.builder(ctx, tracker)
                 .withHeader(parameters -> Text.literal(String.format("§7Tracked §f%s§7 entities with blacklisted items:", parameters.elementCount())))
+                .withRows(TrackerCommand::getTrackerRow, List.of(getTpButton()))
+                .withEmptyMessage(parameters -> Text.literal("No mobs with blacklisted items tracked yet"))
+                .withRefreshButton()
+                .display();
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int purge(CommandContext<ServerCommandSource> ctx) {
+        EntityTracker tracker = EntityTracker.getServerState(ctx.getSource().getServer());
+        int size = tracker.get().size();
+        List<TrackedEntity> remaining = EntityTracker
+                .getServerState(ctx.getSource().getServer())
+                .purge(ctx);
+        CommandPagination.builder(ctx, remaining)
+                .withCommand(String.format("/%s %s", ROOT_COMMAND, TRACKER_COMMAND))
+                .withHeader(parameters -> Text.literal(String.format("§7Killed §f%s§7 entities, %s left:", size - parameters.elementCount(), parameters.elementCount())))
                 .withRows(TrackerCommand::getTrackerRow, List.of(getTpButton()))
                 .withEmptyMessage(parameters -> Text.literal("No mobs with blacklisted items tracked yet"))
                 .withRefreshButton()
