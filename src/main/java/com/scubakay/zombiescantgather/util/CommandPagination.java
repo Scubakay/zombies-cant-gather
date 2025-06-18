@@ -12,7 +12,6 @@ import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 public class CommandPagination<C, D extends List<C>> {
@@ -31,7 +30,7 @@ public class CommandPagination<C, D extends List<C>> {
 
     private Parameters parameters;
     private final String command;
-    private final CommandContext<ServerCommandSource> context;
+    private final CommandContext<ServerCommandSource> commandContext;
     private final D list;
 
     private Text header;
@@ -40,7 +39,7 @@ public class CommandPagination<C, D extends List<C>> {
     private final List<CommandButton<C>> buttons = new ArrayList<>();
 
     private CommandPagination(CommandContext<ServerCommandSource> context, D list) {
-        this.context = context;
+        this.commandContext = context;
         this.list = list;
 
         // Get command information
@@ -89,24 +88,9 @@ public class CommandPagination<C, D extends List<C>> {
     }
 
     public CommandPagination<C, D> withRows(Function<C, MutableText> rowMapper, List<CommandButton<C>> buttons) {
-        this.rows = this.list.subList(parameters.fromIndex, parameters.toIndex).stream().map(row -> withRowButtons(row, buttons)
+        this.rows = this.list.subList(parameters.fromIndex, parameters.toIndex).stream().map(row -> CommandButton.getButtonRow(row, buttons)
                 .append(rowMapper.apply(row))).toList();
         return this;
-    }
-
-    private static <C> MutableText withRowButtons(C row, List<CommandButton<C>> buttons) {
-        AtomicReference<MutableText> rowButtons = new AtomicReference<>(null);
-        buttons.forEach(button -> {
-            MutableText existingButtons = rowButtons.get();
-            if (existingButtons != null) {
-                existingButtons = existingButtons.append(button.build(row));
-            } else {
-                existingButtons = button.build(row);
-            }
-            existingButtons.append(CommandUtil.getResetSpace());
-            rowButtons.set(existingButtons);
-        });
-        return rowButtons.get();
     }
 
     public CommandPagination<C, D> withFooter(Function<Parameters, Text> emptyListMessage) {
@@ -126,38 +110,26 @@ public class CommandPagination<C, D extends List<C>> {
 
     public void display() {
         if (header != null) {
-            CommandUtil.reply(context, header);
-            CommandUtil.reply(context, getTableBorder());
+            CommandUtil.reply(this.commandContext, header);
+            CommandUtil.reply(this.commandContext, getTableBorder());
         }
 
-        rows.forEach(row -> CommandUtil.reply(context, row));
+        rows.forEach(row -> CommandUtil.reply(this.commandContext, row));
 
         final Text pagination = getPagination(emptyListMessage);
-        final Text buttonRow = getButtonRow();
+        final Text buttonRow = CommandButton.getButtonRow(null, buttons);
         if (pagination != null) {
-            CommandUtil.reply(context, pagination);
+            CommandUtil.reply(this.commandContext, pagination);
         } else if (buttonRow != null) {
-            CommandUtil.reply(context, getTableBorder());
+            CommandUtil.reply(this.commandContext, getTableBorder());
         }
-        CommandUtil.reply(context, buttonRow);
+        CommandUtil.reply(this.commandContext, buttonRow);
     }
 
     private static MutableText getTableBorder() {
         return Text.literal(" --------------------------- ")
                 .styled(style -> style
                         .withColor(Colors.LIGHT_GRAY));
-    }
-
-    private Text getButtonRow() {
-        AtomicReference<Text> buttonRow = new AtomicReference<>(null);
-        buttons.forEach(button -> {
-            if (buttonRow.get() == null) {
-                buttonRow.set(button.build(null));
-            } else {
-                buttonRow.set(buttonRow.get().copy().append(button.build(null)));
-            }
-        });
-        return buttonRow.get();
     }
 
     private Text getPagination(Text emptyMessage) {

@@ -3,6 +3,8 @@ package com.scubakay.zombiescantgather.util;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 public class CommandButton<C> {
@@ -27,6 +29,25 @@ public class CommandButton<C> {
         CommandButton<C> button = new CommandButton<>(text);
         button.suggestion = true;
         return button;
+    }
+
+//    public static <C> MutableText getButtonRow(List<CommandButton<C>> buttons) {
+//        return getButtonRow(null, buttons);
+//    }
+
+    public static <C> MutableText getButtonRow(C context, List<CommandButton<C>> buttons) {
+        AtomicReference<MutableText> rowButtons = new AtomicReference<>(null);
+        buttons.forEach(button -> {
+            MutableText existingButtons = rowButtons.get();
+            if (existingButtons != null) {
+                existingButtons = existingButtons.append(button.build(context));
+            } else {
+                existingButtons = button.build(context);
+            }
+            existingButtons.append(CommandUtil.getResetSpace());
+            rowButtons.set(existingButtons);
+        });
+        return rowButtons.get();
     }
 
     public CommandButton<C> requires(Function<ServerPlayerEntity, Boolean> requires) {

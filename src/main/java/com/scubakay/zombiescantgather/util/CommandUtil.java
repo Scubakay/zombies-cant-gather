@@ -24,6 +24,9 @@ public class CommandUtil {
         return Text.literal(" ").styled(style -> getResetStyle(style).withFormatting(Formatting.WHITE));
     }
 
+    /**
+     * Hacky change page 1 and empty tooltip to effectively reset the style
+     */
     public static Style getResetStyle(Style style) {
         //? >=1.21.5 {
         ClickEvent click = new ClickEvent.ChangePage(1);
@@ -36,6 +39,9 @@ public class CommandUtil {
                 .withHoverEvent(hover);
     }
 
+    /**
+     * Unclickable style with tooltip
+     */
     public static Style getTooltipStyle(Style style, Text tooltip) {
         //? >=1.21.5 {
         ClickEvent click = new ClickEvent.ChangePage(1);

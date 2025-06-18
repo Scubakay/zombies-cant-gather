@@ -85,10 +85,8 @@ public class BlacklistCommand {
             return 0;
         }
         list.add(item);
-        // TODO: Use CommandPagination::getRowButtons here maybe?
-        CommandUtil.reply(context, getListButton(type)
-                .append(Text.literal(String.format(ADDED_REPLY, type.toPlural(), item))
-                        .styled(CommandUtil::getResetStyle)));
+        CommandUtil.reply(context, CommandButton.getButtonRow(type, List.of(getListButton()))
+                .append(getReply(ADDED_REPLY, type, item)));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -104,18 +102,17 @@ public class BlacklistCommand {
             return 0;
         }
         list.remove(item);
-        CommandUtil.reply(context, getListButton(type)
-                .append(Text.literal(String.format(REMOVED_REPLY, type.toPlural(), item))
-                        .styled(CommandUtil::getResetStyle)));
+        CommandUtil.reply(context, CommandButton.getButtonRow(type, List.of(getListButton()))
+                .append(getReply(REMOVED_REPLY, type, item)));
         return Command.SINGLE_SUCCESS;
     }
 
-    public static int list(CommandContext<ServerCommandSource> context, Blacklist type) {
+    public static int list(CommandContext<ServerCommandSource> ctx, Blacklist type) {
         List<String> items = switch (type) {
             case PIGLIN -> ModConfig.piglinsBlacklist;
             case ZOMBIE -> ModConfig.zombiesBlacklist;
         };
-        CommandPagination.builder(context, items)
+        CommandPagination.builder(ctx, items)
                 .withPageSize(5)
                 .withHeader(parameters -> Text.literal(String.format(BLACKLIST_HEADER_REPLY, type.toPlural(), parameters.elementCount())))
                 .withRows(getRow(), List.of(getRemoveButton(type)))
@@ -133,6 +130,11 @@ public class BlacklistCommand {
 
         CommandUtil.reply(context, RESET_ITEMS_REPLY, type);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static MutableText getReply(String message, Blacklist type, String item) {
+        return Text.literal(String.format(message, type.toPlural(), item))
+                .styled(CommandUtil::getResetStyle);
     }
 
     private static Function<String, MutableText> getRow() {
@@ -227,13 +229,12 @@ public class BlacklistCommand {
                 .build();
     }
 
-    private static MutableText getListButton(Blacklist type) {
-        return CommandButton.run(t -> Text.literal("List"))
+    private static CommandButton<Blacklist> getListButton() {
+        return CommandButton.<Blacklist>run(t -> Text.literal("List"))
                 .requires(player -> !hasPermission(player, BLACKLIST_PERMISSION))
                 .withToolTip(t -> Text.literal(String.format("View %s blacklist", t)))
                 .withCommand(t -> String.format("/zcg %s", t))
                 .withColor(t -> Colors.YELLOW)
-                .withBrackets()
-                .build(type);
+                .withBrackets();
     }
 }
