@@ -3,7 +3,7 @@ package com.scubakay.zombiescantgather.util;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.loader.impl.util.StringUtil;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.text.*;
 import org.apache.commons.lang3.StringUtils;
 
 public class CommandUtil {

@@ -1,0 +1,102 @@
+package com.scubakay.zombiescantgather.util;
+
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.*;
+import net.minecraft.util.Formatting;
+
+import java.util.function.Function;
+
+public class CommandButton<C> {
+    Function<C, Text> text;
+    boolean suggestion;
+    Function<ServerPlayerEntity, Boolean> requires;
+    Function<C, Text> tooltip;
+    Function<C, Boolean> clickable = clickable -> true;
+    Function<C, String> command;
+    Function<C, Integer> color;
+    boolean brackets = false;
+
+    public CommandButton(Function<C, Text> text) {
+        this.text = text;
+    }
+
+    public static <C> CommandButton<C> run(Function<C, Text> text) {
+        return new CommandButton<>(text);
+    }
+
+    public static <C> CommandButton<C> suggest(Function<C, Text> text) {
+        CommandButton<C> button = new CommandButton<>(text);
+        button.brackets = true;
+        return button;
+    }
+
+    public CommandButton<C> requires(Function<ServerPlayerEntity, Boolean> requires) {
+        this.requires = requires;
+        return this;
+    }
+
+    public CommandButton<C> withToolTip(Function<C, Text> tooltip) {
+        this.tooltip = tooltip;
+        return this;
+    }
+
+    public CommandButton<C> withClickable(Function<C, Boolean> clickable) {
+        this.clickable = clickable;
+        return this;
+    }
+
+    public CommandButton<C> withCommand(Function<C, String> command) {
+        this.command = command;
+        return this;
+    }
+
+    public CommandButton<C> withColor(Function<C, Integer> color) {
+        this.color = color;
+        return this;
+    }
+
+    public CommandButton<C> withBrackets() {
+        this.brackets = true;
+        return this;
+    }
+
+    public MutableText build(C item) {
+        MutableText button = brackets ? Text.literal("[")
+                .styled(style -> clickable.apply(item) ? getButtonStyle(style, this.tooltip.apply(item), this.command.apply(item), this.suggestion) : getInactiveStyle(style))
+                .withColor(this.color.apply(item)) : Text.empty();
+        button = button.copy().append(this.text.apply(item));
+        button = brackets ? button.copy().append(Text.literal("]")) : button;
+        return button.append(getResetSpace());
+    }
+
+    /**
+     * Just a space but it resets the click/hover/color styles
+     */
+    public static MutableText getResetSpace() {
+        return Text.literal(" ").styled(style -> getInactiveStyle(style).withFormatting(Formatting.WHITE));
+    }
+
+    private static Style getButtonStyle(Style style, Text tooltip, String command, boolean suggestion) {
+        //? >=1.21.5 {
+        ClickEvent click = suggestion ? new ClickEvent.SuggestCommand(command) : new ClickEvent.RunCommand(command);
+        HoverEvent hover = new HoverEvent.ShowText(tooltip);
+        //?} else {
+        /*ClickEvent click = suggestion ? new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command) : new ClickEvent(ClickEvent.Action.RUN_COMMAND, command);
+        HoverEvent hover =new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip);
+        *///?}
+        return style.withClickEvent(click)
+                .withHoverEvent(hover);
+    }
+
+    private static Style getInactiveStyle(Style style) {
+        //? >=1.21.5 {
+        ClickEvent click = new ClickEvent.ChangePage(1);
+        HoverEvent hover = new HoverEvent.ShowText(Text.empty());
+        //?} else {
+        /*ClickEvent click = new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1");
+        HoverEvent hover =new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.empty());
+        *///?}
+        return style.withClickEvent(click)
+                .withHoverEvent(hover);
+    }
+}

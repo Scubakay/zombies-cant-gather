@@ -7,6 +7,7 @@ import com.mojang.brigadier.tree.CommandNode;
 import com.scubakay.zombiescantgather.config.ModConfig;
 import com.scubakay.zombiescantgather.state.EntityTracker;
 import com.scubakay.zombiescantgather.state.TrackedEntity;
+import com.scubakay.zombiescantgather.util.CommandButton;
 import com.scubakay.zombiescantgather.util.CommandPagination;
 import com.scubakay.zombiescantgather.util.CommandUtil;
 import net.minecraft.command.CommandRegistryAccess;
@@ -84,13 +85,12 @@ public class TrackerCommand {
         CommandPagination.builder(context, tracker)
                 .withHeader(parameters -> Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", parameters.elementCount())))
                 .withRows(TrackerCommand::getTrackerRow, List.of(
-                        new CommandPagination.Button<>(
-                                item -> Text.literal("TP"),
-                                player -> !hasPermission(player, PermissionManager.TRACKER_TELEPORT_PERMISSION),
-                                TrackerCommand::getTpButtonToolTip,
-                                TrackerCommand::getTpCommand,
-                                Colors.GREEN
-                        )))
+                        new CommandButton<TrackedEntity>(item -> Text.literal("TP"))
+                                .requires(player -> !hasPermission(player, PermissionManager.TRACKER_TELEPORT_PERMISSION))
+                                .withToolTip(TrackerCommand::getTpButtonToolTip)
+                                .withCommand(TrackerCommand::getTpCommand)
+                                .withColor(TrackedEntity::getDimensionColor)
+                                .withBrackets()))
                 .withFooter(parameters -> Text.literal("No mobs with blacklisted items tracked yet"))
                 .withRefreshButton()
                 .display();

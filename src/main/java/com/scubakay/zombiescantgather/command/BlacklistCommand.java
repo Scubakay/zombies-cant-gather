@@ -6,6 +6,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.scubakay.zombiescantgather.config.ModConfig;
+import com.scubakay.zombiescantgather.util.CommandButton;
 import com.scubakay.zombiescantgather.util.CommandPagination;
 import com.scubakay.zombiescantgather.util.CommandUtil;
 import net.minecraft.command.CommandRegistryAccess;
@@ -16,6 +17,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.CommandManager.RegistrationEnvironment;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 
@@ -81,13 +83,7 @@ public class BlacklistCommand {
             return 0;
         }
         list.add(item);
-        CommandUtil.reply(context, CommandPagination.getButton(new CommandPagination.Button<>(
-                nothing -> Text.literal("List"),
-                player -> !hasPermission(player, BLACKLIST_PERMISSION),
-                tooltip -> Text.literal(String.format("View %s blacklist", type)),
-                command -> String.format("/zcg %s", type),
-                Colors.YELLOW
-                )).append(Text.literal(String.format(ADDED_REPLY, type.toPlural(), item))));
+        CommandUtil.reply(context, getListButton(type).append(Text.literal(String.format(ADDED_REPLY, type.toPlural(), item))));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -103,13 +99,7 @@ public class BlacklistCommand {
             return 0;
         }
         list.remove(item);
-        CommandUtil.reply(context, CommandPagination.getButton(new CommandPagination.Button<>(
-                nothing -> Text.literal("List"),
-                player -> !hasPermission(player, BLACKLIST_PERMISSION),
-                tooltip -> Text.literal(String.format("View %s blacklist", type)),
-                command -> String.format("/zcg %s", type),
-                Colors.YELLOW
-        )).append(Text.literal(String.format(REMOVED_REPLY, type.toPlural(), item))));
+        CommandUtil.reply(context, getListButton(type).append(Text.literal(String.format(REMOVED_REPLY, type.toPlural(), item))));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -122,22 +112,19 @@ public class BlacklistCommand {
                 .withPageSize(5)
                 .withHeader(parameters -> Text.literal(String.format(BLACKLIST_HEADER_REPLY, type.toPlural(), parameters.elementCount())))
                 .withRows(item -> Text.literal(String.format(BLACKLIST_ROW_REPLY, item)), List.of(
-                        new CommandPagination.Button<>(
-                                item -> Text.literal("Remove"),
-                                player -> !hasPermission(player, BLACKLIST_REMOVE_PERMISSION),
-                                item -> Text.literal(String.format("Remove %s from blacklist", item)),
-                                id -> String.format("/zcg %s remove %s", type, id),
-                                Colors.RED
-                        )))
+                        CommandButton.<String>run(item -> Text.literal("Remove"))
+                                .requires(player -> !hasPermission(player, BLACKLIST_REMOVE_PERMISSION))
+                                .withToolTip(item -> Text.literal(String.format("Remove %s from blacklist", item)))
+                                .withCommand(id -> String.format("/zcg %s remove %s", type, id))
+                                .withColor(item -> Colors.RED)
+                                .withBrackets()))
                 .withFooter(parameters -> Text.literal(String.format("No items on %s blacklist", type)))
-                .withButton(new CommandPagination.Button<>(
-                        item -> Text.literal("Add"),
-                        player -> !hasPermission(player, BLACKLIST_ADD_PERMISSION),
-                        item -> Text.literal("Blacklist an item"),
-                        string -> String.format("/zcg %s add ", type),
-                        Colors.BLUE,
-                        true
-                ))
+                .withButton(CommandButton.<String>suggest(item -> Text.literal("Add"))
+                        .requires(player -> !hasPermission(player, BLACKLIST_ADD_PERMISSION))
+                        .withToolTip(item -> Text.literal("Blacklist an item"))
+                        .withCommand(string -> String.format("/zcg %s add ", type))
+                        .withColor(item -> Colors.BLUE)
+                        .withBrackets())
                 .display();
         return Command.SINGLE_SUCCESS;
     }
@@ -220,5 +207,15 @@ public class BlacklistCommand {
                 .requires(ctx -> hasPermission(ctx, BLACKLIST_RESET_PERMISSION))
                 .executes(ctx -> reset(ctx, entityType))
                 .build();
+    }
+
+    private static MutableText getListButton(Blacklist type) {
+        return CommandButton.run(t -> Text.literal("List"))
+                .requires(player -> !hasPermission(player, BLACKLIST_PERMISSION))
+                .withToolTip(t -> Text.literal(String.format("View %s blacklist", t)))
+                .withCommand(t -> String.format("/zcg %s", t))
+                .withColor(t -> Colors.YELLOW)
+                .withBrackets()
+                .build(type);
     }
 }
