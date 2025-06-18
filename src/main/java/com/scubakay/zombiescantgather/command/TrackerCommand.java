@@ -18,8 +18,6 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
@@ -84,13 +82,7 @@ public class TrackerCommand {
 
         CommandPagination.builder(context, tracker)
                 .withHeader(parameters -> Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", parameters.elementCount())))
-                .withRows(TrackerCommand::getTrackerRow, List.of(
-                        CommandButton.<TrackedEntity>run(item -> Text.literal("TP"))
-                                .requires(player -> !hasPermission(player, PermissionManager.TRACKER_TELEPORT_PERMISSION))
-                                .withToolTip(TrackerCommand::getTpButtonToolTip)
-                                .withCommand(TrackerCommand::getTpCommand)
-                                .withColor(TrackedEntity::getDimensionColor)
-                                .withBrackets()))
+                .withRows(TrackerCommand::getTrackerRow, List.of(getTpButton()))
                 .withFooter(parameters -> Text.literal("No mobs with blacklisted items tracked yet"))
                 .withRefreshButton()
                 .display();
@@ -126,24 +118,16 @@ public class TrackerCommand {
 
     public static MutableText getTrackerRow(TrackedEntity entity) {
         return Text.literal(String.format("(%dx) ", entity.getCount()))
+                .append(Text.literal(entity.getName()) // <name>
                         .styled(style -> style
-                                //? >=1.21.5 {
-                                .withClickEvent(new ClickEvent.ChangePage(1))
-                                .withHoverEvent(new HoverEvent.ShowText(getTrackerRowToolTip(entity)))
-                                //?} else {
-                                /*.withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1"))
-                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTrackerRowToolTip(entity)))
-                                *///?}
-                                .withFormatting(Formatting.GRAY))
-                        .append(Text.literal(entity.getName()) // <name>
-                                .styled(style -> style
-                                        .withFormatting(Formatting.WHITE)))
-                        .append(Text.literal(" is holding ")
-                                .styled(style -> style
-                                        .withFormatting(Formatting.GRAY)))
-                        .append(Text.literal(entity.getItem())
-                                .styled(style -> style
-                                        .withFormatting(Formatting.WHITE)));
+                                .withFormatting(Formatting.WHITE)))
+                .append(Text.literal(" is holding ")
+                        .styled(style -> style
+                                .withFormatting(Formatting.GRAY)))
+                .append(Text.literal(entity.getItem())
+                        .styled(style -> style
+                                .withFormatting(Formatting.WHITE)))
+                .styled(style -> CommandUtil.getTooltipStyle(style, getTrackerRowToolTip(entity)).withFormatting(Formatting.GRAY));
     }
 
     private static Text getTrackerRowToolTip(TrackedEntity entity) {
@@ -151,6 +135,15 @@ public class TrackerCommand {
                 .styled(style -> style
                         .withFormatting(Formatting.BOLD)
                         .withColor(entity.getDimensionColor())).append(getTooltipDescription(entity));
+    }
+
+    private static CommandButton<TrackedEntity> getTpButton() {
+        return CommandButton.<TrackedEntity>run(item -> Text.literal("TP"))
+                .requires(player -> !hasPermission(player, PermissionManager.TRACKER_TELEPORT_PERMISSION))
+                .withToolTip(TrackerCommand::getTpButtonToolTip)
+                .withCommand(TrackerCommand::getTpCommand)
+                .withColor(TrackedEntity::getDimensionColor)
+                .withBrackets();
     }
 
     private static Text getTpButtonToolTip(TrackedEntity entity) {

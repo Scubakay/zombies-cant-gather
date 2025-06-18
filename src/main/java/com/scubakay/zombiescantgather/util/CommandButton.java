@@ -2,7 +2,6 @@ package com.scubakay.zombiescantgather.util;
 
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
-import net.minecraft.util.Formatting;
 
 import java.util.function.Function;
 
@@ -11,7 +10,7 @@ public class CommandButton<C> {
     boolean suggestion;
     Function<ServerPlayerEntity, Boolean> requires;
     Function<C, Text> tooltip;
-    Function<C, Boolean> clickable = clickable -> true;
+    Function<C, Boolean> clickable = x -> true;
     Function<C, String> command;
     Function<C, Integer> color;
     boolean brackets = false;
@@ -69,16 +68,8 @@ public class CommandButton<C> {
                         this.tooltip.apply(item),
                         this.command.apply(item),
                         this.suggestion
-                ) : getInactiveStyle(style))
-                .withColor(this.color.apply(item))
-                .append(getResetSpace());
-    }
-
-    /**
-     * Just a space but it resets the click/hover/color styles
-     */
-    public static MutableText getResetSpace() {
-        return Text.literal(" ").styled(style -> getInactiveStyle(style).withFormatting(Formatting.WHITE));
+                ) : CommandUtil.getResetStyle(style))
+                .withColor(this.color.apply(item));
     }
 
     private static Style getButtonStyle(Style style, Text tooltip, String command, boolean suggestion) {
@@ -88,18 +79,6 @@ public class CommandButton<C> {
         //?} else {
         /*ClickEvent click = suggestion ? new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command) : new ClickEvent(ClickEvent.Action.RUN_COMMAND, command);
         HoverEvent hover =new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip);
-        *///?}
-        return style.withClickEvent(click)
-                .withHoverEvent(hover);
-    }
-
-    private static Style getInactiveStyle(Style style) {
-        //? >=1.21.5 {
-        ClickEvent click = new ClickEvent.ChangePage(1);
-        HoverEvent hover = new HoverEvent.ShowText(Text.empty());
-        //?} else {
-        /*ClickEvent click = new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1");
-        HoverEvent hover =new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.empty());
         *///?}
         return style.withClickEvent(click)
                 .withHoverEvent(hover);

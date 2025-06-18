@@ -89,14 +89,24 @@ public class CommandPagination<C, D extends List<C>> {
     }
 
     public CommandPagination<C, D> withRows(Function<C, MutableText> rowMapper, List<CommandButton<C>> buttons) {
-        this.rows = this.list.subList(parameters.fromIndex, parameters.toIndex)
-                .stream().map(row -> {
-                    AtomicReference<Text> rowButtons = new AtomicReference<>(null);
-                    buttons.forEach(button -> rowButtons.set(rowButtons.get() == null ? button.build(row) : rowButtons.get().copy().append(button.build(row))));
-                    return rowButtons.get().copy().append(CommandButton.getResetSpace())
-                            .append(rowMapper.apply(row));
-                }).toList();
+        this.rows = this.list.subList(parameters.fromIndex, parameters.toIndex).stream().map(row -> withRowButtons(row, buttons)
+                .append(rowMapper.apply(row))).toList();
         return this;
+    }
+
+    private static <C> MutableText withRowButtons(C row, List<CommandButton<C>> buttons) {
+        AtomicReference<MutableText> rowButtons = new AtomicReference<>(null);
+        buttons.forEach(button -> {
+            MutableText existingButtons = rowButtons.get();
+            if (existingButtons != null) {
+                existingButtons = existingButtons.append(button.build(row));
+            } else {
+                existingButtons = button.build(row);
+            }
+            existingButtons.append(CommandUtil.getResetSpace());
+            rowButtons.set(existingButtons);
+        });
+        return rowButtons.get();
     }
 
     public CommandPagination<C, D> withFooter(Function<Parameters, Text> emptyListMessage) {

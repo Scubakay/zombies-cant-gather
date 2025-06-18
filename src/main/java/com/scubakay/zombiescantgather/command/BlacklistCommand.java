@@ -20,8 +20,10 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
@@ -83,7 +85,10 @@ public class BlacklistCommand {
             return 0;
         }
         list.add(item);
-        CommandUtil.reply(context, getListButton(type).append(Text.literal(String.format(ADDED_REPLY, type.toPlural(), item))));
+        // TODO: Use CommandPagination::getRowButtons here maybe?
+        CommandUtil.reply(context, getListButton(type)
+                .append(Text.literal(String.format(ADDED_REPLY, type.toPlural(), item))
+                        .styled(CommandUtil::getResetStyle)));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -99,7 +104,9 @@ public class BlacklistCommand {
             return 0;
         }
         list.remove(item);
-        CommandUtil.reply(context, getListButton(type).append(Text.literal(String.format(REMOVED_REPLY, type.toPlural(), item))));
+        CommandUtil.reply(context, getListButton(type)
+                .append(Text.literal(String.format(REMOVED_REPLY, type.toPlural(), item))
+                        .styled(CommandUtil::getResetStyle)));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -111,20 +118,9 @@ public class BlacklistCommand {
         CommandPagination.builder(context, items)
                 .withPageSize(5)
                 .withHeader(parameters -> Text.literal(String.format(BLACKLIST_HEADER_REPLY, type.toPlural(), parameters.elementCount())))
-                .withRows(item -> Text.literal(String.format(BLACKLIST_ROW_REPLY, item)), List.of(
-                        CommandButton.<String>run(item -> Text.literal("Remove"))
-                                .requires(player -> !hasPermission(player, BLACKLIST_REMOVE_PERMISSION))
-                                .withToolTip(item -> Text.literal(String.format("Remove %s from blacklist", item)))
-                                .withCommand(id -> String.format("/zcg %s remove %s", type, id))
-                                .withColor(item -> Colors.RED)
-                                .withBrackets()))
+                .withRows(getRow(), List.of(getRemoveButton(type)))
                 .withFooter(parameters -> Text.literal(String.format("No items on %s blacklist", type)))
-                .withButton(CommandButton.<String>suggest(item -> Text.literal("Add"))
-                        .requires(player -> !hasPermission(player, BLACKLIST_ADD_PERMISSION))
-                        .withToolTip(item -> Text.literal("Blacklist an item"))
-                        .withCommand(item -> String.format("/zcg %s add ", type))
-                        .withColor(item -> Colors.BLUE)
-                        .withBrackets())
+                .withButton(getAddButton(type))
                 .display();
         return Command.SINGLE_SUCCESS;
     }
@@ -137,6 +133,28 @@ public class BlacklistCommand {
 
         CommandUtil.reply(context, RESET_ITEMS_REPLY, type);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static Function<String, MutableText> getRow() {
+        return item -> Text.literal(String.format(BLACKLIST_ROW_REPLY, item)).styled(CommandUtil::getResetStyle);
+    }
+
+    private static CommandButton<String> getAddButton(Blacklist type) {
+        return CommandButton.<String>suggest(item -> Text.literal("Add"))
+                .requires(player -> !hasPermission(player, BLACKLIST_ADD_PERMISSION))
+                .withToolTip(item -> Text.literal("Blacklist an item"))
+                .withCommand(item -> String.format("/zcg %s add ", type))
+                .withColor(item -> Colors.BLUE)
+                .withBrackets();
+    }
+
+    private static @NotNull CommandButton<String> getRemoveButton(Blacklist type) {
+        return CommandButton.<String>run(item -> Text.literal("Remove"))
+                .requires(player -> !hasPermission(player, BLACKLIST_REMOVE_PERMISSION))
+                .withToolTip(item -> Text.literal(String.format("Remove %s from blacklist", item)))
+                .withCommand(id -> String.format("/zcg %s remove %s", type, id))
+                .withColor(item -> Colors.RED)
+                .withBrackets();
     }
 
     private static LiteralCommandNode<ServerCommandSource> getEntityNode(Blacklist entity) {
