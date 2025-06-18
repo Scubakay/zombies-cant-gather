@@ -17,6 +17,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.CommandManager.RegistrationEnvironment;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.util.Colors;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -37,8 +38,13 @@ public class BlacklistCommand {
             this.plural = plural;
         }
 
-        public String toString() { return name; }
-        public String toPlural() { return plural; }
+        public String toString() {
+            return name;
+        }
+
+        public String toPlural() {
+            return plural;
+        }
     }
 
     private static final String ITEM_ARGUMENT = "item";
@@ -49,7 +55,7 @@ public class BlacklistCommand {
     private static final String NOT_FOUND_REPLY = "%s§7 not found in §f%s§7 blacklist";
     private static final String RESET_ITEMS_REPLY = "§7Reset §f%s§7 items";
     private static final String BLACKLIST_HEADER_REPLY = "\n%s§7 can't pick up §f%s§7 items:";
-    private static final String BLACKLIST_ROW_REPLY = "- §f%s";
+    private static final String BLACKLIST_ROW_REPLY = "§f%s";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registry, RegistrationEnvironment ignoredEnv) {
         RootCommand.getRoot(dispatcher).addChild(getBlacklistNode(registry, Blacklist.PIGLIN));
@@ -66,7 +72,7 @@ public class BlacklistCommand {
 
     public static int add(CommandContext<ServerCommandSource> context, Blacklist type, ItemStackArgument itemStackArgument) {
         String item = itemStackArgument.getItem().toString();
-        List<String> list = switch(type) {
+        List<String> list = switch (type) {
             case PIGLIN -> ModConfig.piglinsBlacklist;
             case ZOMBIE -> ModConfig.zombiesBlacklist;
         };
@@ -75,13 +81,19 @@ public class BlacklistCommand {
             return 0;
         }
         list.add(item);
-        CommandUtil.reply(context, ADDED_REPLY, type.toPlural(), item);
+        CommandUtil.reply(context, CommandPagination.getButton(new CommandPagination.Button<>(
+                nothing -> Text.literal("List"),
+                player -> !hasPermission(player, BLACKLIST_PERMISSION),
+                tooltip -> Text.literal(String.format("View %s blacklist", type)),
+                command -> String.format("/zcg %s", type),
+                Colors.YELLOW
+                )).append(Text.literal(String.format(ADDED_REPLY, type.toPlural(), item))));
         return Command.SINGLE_SUCCESS;
     }
 
     public static int remove(CommandContext<ServerCommandSource> context, Blacklist type, ItemStackArgument itemStackArgument) {
         String item = itemStackArgument.getItem().toString();
-        List<String> list = switch(type) {
+        List<String> list = switch (type) {
             case PIGLIN -> ModConfig.piglinsBlacklist;
             case ZOMBIE -> ModConfig.zombiesBlacklist;
         };
@@ -91,7 +103,13 @@ public class BlacklistCommand {
             return 0;
         }
         list.remove(item);
-        CommandUtil.reply(context, REMOVED_REPLY, type.toPlural(), item);
+        CommandUtil.reply(context, CommandPagination.getButton(new CommandPagination.Button<>(
+                nothing -> Text.literal("List"),
+                player -> !hasPermission(player, BLACKLIST_PERMISSION),
+                tooltip -> Text.literal(String.format("View %s blacklist", type)),
+                command -> String.format("/zcg %s", type),
+                Colors.YELLOW
+        )).append(Text.literal(String.format(REMOVED_REPLY, type.toPlural(), item))));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -102,9 +120,24 @@ public class BlacklistCommand {
         };
         CommandPagination.builder(context, items)
                 .withPageSize(5)
-                .withHeader(parameters -> Text.literal(String.format(BLACKLIST_HEADER_REPLY, type.toPlural(), parameters.pageSize())))
-                .withRows(item -> Text.literal(String.format(BLACKLIST_ROW_REPLY, item)))
+                .withHeader(parameters -> Text.literal(String.format(BLACKLIST_HEADER_REPLY, type.toPlural(), parameters.elementCount())))
+                .withRows(item -> Text.literal(String.format(BLACKLIST_ROW_REPLY, item)), List.of(
+                        new CommandPagination.Button<>(
+                                item -> Text.literal("Remove"),
+                                player -> !hasPermission(player, BLACKLIST_REMOVE_PERMISSION),
+                                item -> Text.literal(String.format("Remove %s from blacklist", item)),
+                                id -> String.format("/zcg %s remove %s", type, id),
+                                Colors.RED
+                        )))
                 .withFooter(parameters -> Text.literal(String.format("No items on %s blacklist", type)))
+                .withButton(new CommandPagination.Button<>(
+                        item -> Text.literal("Add"),
+                        player -> !hasPermission(player, BLACKLIST_ADD_PERMISSION),
+                        item -> Text.literal("Blacklist an item"),
+                        string -> String.format("/zcg %s add ", type),
+                        Colors.BLUE,
+                        true
+                ))
                 .display();
         return Command.SINGLE_SUCCESS;
     }

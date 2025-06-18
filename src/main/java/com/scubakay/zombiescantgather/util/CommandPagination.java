@@ -6,6 +6,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Formatting;
@@ -29,13 +30,26 @@ public class CommandPagination<C, D extends List<C>> {
     ) {
     }
 
+    public record Button<C>(
+            Function<C, Text> text,
+            Function<ServerPlayerEntity, Boolean> requires,
+            Function<C, Text> tooltip,
+            Function<C, String> command,
+            int color,
+            boolean suggestion
+    ) {
+        public Button(Function<C, Text> text, Function<ServerPlayerEntity, Boolean> requires, Function<C, Text> tooltip, Function<C, String> command, int color) {
+            this(text, requires, tooltip, command, color, false); // default suggestion to false
+        }
+    }
+
     private Parameters parameters;
     private final String command;
     private final CommandContext<ServerCommandSource> context;
     private final D list;
 
     private Text header;
-    private List<Text> rows = new ArrayList<>();
+    private List<MutableText> rows = new ArrayList<>();
     private Text emptyListMessage = Text.literal("List is empty");
     private final List<Text> buttons = new ArrayList<>();
 
@@ -88,9 +102,13 @@ public class CommandPagination<C, D extends List<C>> {
         return this;
     }
 
-    public CommandPagination<C, D> withRows(Function<C, Text> rowMapper) {
+    public CommandPagination<C, D> withRows(Function<C, MutableText> rowMapper, List<Button<C>> buttons) {
         this.rows = this.list.subList(parameters.fromIndex, parameters.toIndex)
-                .stream().map(rowMapper).toList();
+                .stream().map(row -> {
+                    AtomicReference<Text> button = new AtomicReference<>(null);
+                    buttons.forEach(b -> button.set(button.get() == null ? getButton(b, row) : button.get().copy().append(getButton(b, row))));
+                    return button.get().copy().append(rowMapper.apply(row));
+                }).toList();
         return this;
     }
 
@@ -104,29 +122,47 @@ public class CommandPagination<C, D extends List<C>> {
         return this;
     }
 
+    public CommandPagination<C, D> withButton(Button<C> button) {
+        this.buttons.add(getButton(button));
+        return this;
+    }
+
     public void display() {
         if (header != null) {
             CommandUtil.reply(context, header);
-            CommandUtil.reply(context, Text.literal(" --------------------------- ")
-                    .styled(style -> style
-                            .withColor(Colors.LIGHT_GRAY)));
+            CommandUtil.reply(context, getTableBorder());
         }
 
         rows.forEach(row -> CommandUtil.reply(context, row));
 
-        CommandUtil.reply(context, getPagination(emptyListMessage));
+        final Text pagination = getPagination(emptyListMessage);
+        if (pagination != null) {
+            CommandUtil.reply(context, pagination);
+        }
 
-            AtomicReference<Text> buttonRow = new AtomicReference<>(null);
-            buttons.forEach(button -> {
-                if (buttonRow.get() == null) {
-                    buttonRow.set(button);
-                } else {
-                    buttonRow.set(buttonRow.get().copy().append(button));
-                }
-            });
-            if (buttonRow.get() != null) {
-                CommandUtil.reply(context, buttonRow.get());
+        final Text buttonRow = getButtonRow();
+        if (buttonRow != null) {
+            CommandUtil.reply(context, getTableBorder());
+            CommandUtil.reply(context, buttonRow);
+        }
+    }
+
+    private static MutableText getTableBorder() {
+        return Text.literal(" --------------------------- ")
+                .styled(style -> style
+                        .withColor(Colors.LIGHT_GRAY));
+    }
+
+    private Text getButtonRow() {
+        AtomicReference<Text> buttonRow = new AtomicReference<>(null);
+        buttons.forEach(button -> {
+            if (buttonRow.get() == null) {
+                buttonRow.set(button);
+            } else {
+                buttonRow.set(buttonRow.get().copy().append(button));
             }
+        });
+        return buttonRow.get();
     }
 
     private Text getPagination(Text emptyMessage) {
@@ -134,7 +170,7 @@ public class CommandPagination<C, D extends List<C>> {
             return emptyMessage.copy().styled(style -> style
                     .withFormatting(Formatting.GREEN));
         } else if (parameters.pageCount() == 1) {
-            return Text.empty();
+            return null;
         }
         return Text.literal(" ------- ").withColor(Colors.LIGHT_GRAY)
                 .append(Text.literal("<< ")
@@ -162,6 +198,41 @@ public class CommandPagination<C, D extends List<C>> {
         return Text.literal("[Refresh]").styled(style ->
                 getPageLinkStyle(style, true, "Refresh page", parameters.currentPage())
                         .withColor(Colors.YELLOW));
+    }
+
+    public static <C> MutableText getButton(Button<C> button) {
+        return CommandPagination.getButton(button, null);
+    }
+
+    public static <C> MutableText getButton(Button<C> button, C item) {
+        return Text.literal("[")
+                .styled(style ->
+                        CommandPagination.getButtonStyle(style, button.tooltip().apply(item), button.command().apply(item), button.suggestion())
+                                .withColor(button.color()))
+                .append(button.text().apply(item))
+                .append(Text.literal("]"))
+                .append(Text.literal(" ")
+                        .styled(style -> style
+                                //? >=1.21.5 {
+                                .withClickEvent(new ClickEvent.ChangePage(1))
+                                .withHoverEvent(new HoverEvent.ShowText(Text.empty()))
+                                //?} else {
+                                /*.withClickEvent(new ClickEvent(ClickEvent.Action.CHANGE_PAGE, "1"))
+                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.empty()))
+                                *///?}
+                                .withFormatting(Formatting.WHITE)));
+    }
+
+    private static Style getButtonStyle(Style style, Text tooltip, String command, boolean suggestion) {
+        //? >=1.21.5 {
+        ClickEvent click = suggestion ? new ClickEvent.SuggestCommand(command) : new ClickEvent.RunCommand(command);
+        HoverEvent hover = new HoverEvent.ShowText(tooltip);
+        //?} else {
+        /*ClickEvent click = suggestion ? new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command) : new ClickEvent(ClickEvent.Action.RUN_COMMAND, command);
+        HoverEvent hover =new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip);
+        *///?}
+        return style.withClickEvent(click)
+                .withHoverEvent(hover);
     }
 
     private String getPageLink(int page) {

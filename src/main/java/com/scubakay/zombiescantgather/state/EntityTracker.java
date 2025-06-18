@@ -82,7 +82,7 @@ public class EntityTracker extends PersistentState {
         if (ModConfig.broadcastTrackedMobs){
             Objects.requireNonNull(entity.getServer()).getPlayerManager().getPlayerList().stream()
                     .filter(player -> hasPermission(player, PermissionManager.TRACKER_LOG_PERMISSION))
-                    .forEach(player -> player.getCommandSource().sendMessage(TrackerCommand.getTrackerRow(player.getCommandSource(), trackedEntity)));
+                    .forEach(player -> player.getCommandSource().sendMessage(TrackerCommand.getTrackerRow(trackedEntity)));
         }
     }
 

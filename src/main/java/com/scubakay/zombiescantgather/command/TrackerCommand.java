@@ -19,6 +19,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Formatting;
@@ -26,7 +27,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -83,7 +83,14 @@ public class TrackerCommand {
 
         CommandPagination.builder(context, tracker)
                 .withHeader(parameters -> Text.literal(String.format("\n§7Tracked §f%s§7 entities with blacklisted items:", parameters.elementCount())))
-                .withRows(item -> getTrackerRow(context.getSource(), item))
+                .withRows(TrackerCommand::getTrackerRow, List.of(
+                        new CommandPagination.Button<>(
+                                item -> Text.literal("TP"),
+                                player -> !hasPermission(player, PermissionManager.TRACKER_TELEPORT_PERMISSION),
+                                TrackerCommand::getTpButtonToolTip,
+                                TrackerCommand::getTpCommand,
+                                Colors.GREEN
+                        )))
                 .withFooter(parameters -> Text.literal("No mobs with blacklisted items tracked yet"))
                 .withRefreshButton()
                 .display();
@@ -117,9 +124,8 @@ public class TrackerCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    public static Text getTrackerRow(ServerCommandSource context, TrackedEntity entity) {
-        return getTpButton(context, entity).copy()
-                .append(Text.literal(String.format("(%dx) ", entity.getCount()))
+    public static MutableText getTrackerRow(TrackedEntity entity) {
+        return Text.literal(String.format("(%dx) ", entity.getCount()))
                         .styled(style -> style
                                 //? >=1.21.5 {
                                 .withClickEvent(new ClickEvent.ChangePage(1))
@@ -137,7 +143,7 @@ public class TrackerCommand {
                                         .withFormatting(Formatting.GRAY)))
                         .append(Text.literal(entity.getItem())
                                 .styled(style -> style
-                                        .withFormatting(Formatting.WHITE))));
+                                        .withFormatting(Formatting.WHITE)));
     }
 
     private static Text getTrackerRowToolTip(TrackedEntity entity) {
@@ -145,22 +151,6 @@ public class TrackerCommand {
                 .styled(style -> style
                         .withFormatting(Formatting.BOLD)
                         .withColor(entity.getDimensionColor())).append(getTooltipDescription(entity));
-    }
-
-    private static Text getTpButton(ServerCommandSource context, TrackedEntity entity) {
-        if (!hasPermission(context, PermissionManager.TRACKER_TELEPORT_PERMISSION)) {
-            return Text.empty();
-        }
-        return Text.literal("[TP] ")
-                .styled(style -> style
-                        .withColor(entity.getDimensionColor())
-                        //? >=1.21.5 {
-                        .withClickEvent(new ClickEvent.RunCommand(getTpCommand(entity)))
-                        .withHoverEvent(new HoverEvent.ShowText(getTpButtonToolTip(entity))));
-        //?} else {
-                        /*.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, getTpCommand(entity)))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getTpButtonToolTip(entity))));
-                        *///?}
     }
 
     private static Text getTpButtonToolTip(TrackedEntity entity) {
@@ -214,7 +204,7 @@ public class TrackerCommand {
                                 .withBold(false)));
     }
 
-    private static @NotNull String getTpCommand(TrackedEntity entity) {
+    private static String getTpCommand(TrackedEntity entity) {
         return String.format("/%s %s %s %s", ROOT_COMMAND, TRACKER_COMMAND, TRACKER_TELEPORT_COMMAND, entity.getUuid());
     }
 }
