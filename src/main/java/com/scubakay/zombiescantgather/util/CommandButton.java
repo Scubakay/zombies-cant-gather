@@ -6,6 +6,8 @@ import net.minecraft.util.Formatting;
 
 import java.util.function.Function;
 
+import static com.scubakay.zombiescantgather.ZombiesCantGather.LOGGER;
+
 public class CommandButton<C> {
     Function<C, Text> text;
     boolean suggestion;
@@ -16,7 +18,7 @@ public class CommandButton<C> {
     Function<C, Integer> color;
     boolean brackets = false;
 
-    public CommandButton(Function<C, Text> text) {
+    private CommandButton(Function<C, Text> text) {
         this.text = text;
     }
 
@@ -61,12 +63,18 @@ public class CommandButton<C> {
     }
 
     public MutableText build(C item) {
-        MutableText button = brackets ? Text.literal("[")
-                .styled(style -> clickable.apply(item) ? getButtonStyle(style, this.tooltip.apply(item), this.command.apply(item), this.suggestion) : getInactiveStyle(style))
-                .withColor(this.color.apply(item)) : Text.empty();
+        MutableText button = brackets ? Text.literal("[") : Text.empty();
         button = button.copy().append(this.text.apply(item));
         button = brackets ? button.copy().append(Text.literal("]")) : button;
-        return button.append(getResetSpace());
+        LOGGER.info(this.command.apply(item));
+        return button.styled(style -> clickable.apply(item) ? getButtonStyle(
+                        style,
+                        this.tooltip.apply(item),
+                        this.command.apply(item),
+                        this.suggestion
+                ) : getInactiveStyle(style))
+                .withColor(this.color.apply(item))
+                .append(getResetSpace());
     }
 
     /**

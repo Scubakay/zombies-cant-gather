@@ -51,13 +51,13 @@ public class BlacklistCommand {
 
     private static final String ITEM_ARGUMENT = "item";
 
-    private static final String ADDED_REPLY = "%s§7 can't gather §f%s§7";
-    private static final String REMOVED_REPLY = "%s§7 can gather §f%s§7 again";
-    private static final String DUPLICATE_REPLY = "%s§7 is already on the §f%s§7 blacklist";
-    private static final String NOT_FOUND_REPLY = "%s§7 not found in §f%s§7 blacklist";
+    private static final String ADDED_REPLY = "§f%s§7 can't gather §f%s§7";
+    private static final String REMOVED_REPLY = "§f%s§7 can gather §f%s§7 again";
+    private static final String DUPLICATE_REPLY = "§f%s§7 is already on the §f%s§7 blacklist";
+    private static final String NOT_FOUND_REPLY = "§f%s§7 not found in §f%s§7 blacklist";
     private static final String RESET_ITEMS_REPLY = "§7Reset §f%s§7 items";
-    private static final String BLACKLIST_HEADER_REPLY = "\n%s§7 can't pick up §f%s§7 items:";
-    private static final String BLACKLIST_ROW_REPLY = "§f%s";
+    private static final String BLACKLIST_HEADER_REPLY = "\n§f%s§7 can't pick up §f%s§7 items:";
+    private static final String BLACKLIST_ROW_REPLY = "§f%s§7";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registry, RegistrationEnvironment ignoredEnv) {
         RootCommand.getRoot(dispatcher).addChild(getBlacklistNode(registry, Blacklist.PIGLIN));
@@ -122,7 +122,7 @@ public class BlacklistCommand {
                 .withButton(CommandButton.<String>suggest(item -> Text.literal("Add"))
                         .requires(player -> !hasPermission(player, BLACKLIST_ADD_PERMISSION))
                         .withToolTip(item -> Text.literal("Blacklist an item"))
-                        .withCommand(string -> String.format("/zcg %s add ", type))
+                        .withCommand(item -> String.format("/zcg %s add ", type))
                         .withColor(item -> Colors.BLUE)
                         .withBrackets())
                 .display();
