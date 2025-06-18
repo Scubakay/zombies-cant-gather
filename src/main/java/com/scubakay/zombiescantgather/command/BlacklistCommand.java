@@ -22,6 +22,7 @@ import net.minecraft.util.Colors;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
@@ -30,8 +31,8 @@ import static com.scubakay.zombiescantgather.command.PermissionManager.*;
 public class BlacklistCommand {
     private static final String ITEM_ARGUMENT = "item";
 
-    private static final String ADDED_REPLY = "§f%s§7 can't gather §f%s§7";
-    private static final String REMOVED_REPLY = "§f%s§7 can gather §f%s§7 again";
+    private static final String ADDED_REPLY = "§f%s§7 can't gather §f%s§7:";
+    private static final String REMOVED_REPLY = "§f%s§7 can gather §f%s§7 again:";
     private static final String DUPLICATE_REPLY = "§f%s§7 is already on the §f%s§7 blacklist";
     private static final String NOT_FOUND_REPLY = "§f%s§7 not found in §f%s§7 blacklist";
     private static final String RESET_ITEMS_REPLY = "§7Reset §f%s§7 items";
@@ -132,48 +133,57 @@ public class BlacklistCommand {
             case PIGLIN -> ModConfig.piglinsBlacklist;
             case ZOMBIE -> ModConfig.zombiesBlacklist;
         };
+        final Function<CommandPagination.Parameters, Text> header = parameters ->
+                Text.literal(String.format(BLACKLIST_HEADER_REPLY, type.toPlural(), parameters.elementCount()));
+        displayPaginatedBlacklist(ctx, type, items, header);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static void displayPaginatedBlacklist(CommandContext<ServerCommandSource> ctx, Blacklist type, List<String> items, Function<CommandPagination.Parameters, Text> header) {
         CommandPagination.builder(ctx, items)
                 .withPageSize(5)
-                .withHeader(parameters -> Text.literal(String.format(BLACKLIST_HEADER_REPLY, type.toPlural(), parameters.elementCount())))
+                .withHeader(header)
                 .withRows(item -> Text.literal(String.format(BLACKLIST_ROW_REPLY, item)), List.of(getRemoveButton(type)))
                 .withEmptyMessage(parameters -> Text.literal(String.format("No items on %s blacklist", type)))
                 .withButton(getAddButton(type))
                 .display();
-        return Command.SINGLE_SUCCESS;
     }
 
-    private static int add(CommandContext<ServerCommandSource> context, Blacklist type, ItemStackArgument itemStackArgument) {
+    private static int add(CommandContext<ServerCommandSource> ctx, Blacklist type, ItemStackArgument itemStackArgument) {
         String item = itemStackArgument.getItem().toString();
-        List<String> list = switch (type) {
+        List<String> items = switch (type) {
             case PIGLIN -> ModConfig.piglinsBlacklist;
             case ZOMBIE -> ModConfig.zombiesBlacklist;
         };
-        if (list.contains(item)) {
-            CommandUtil.send(context, DUPLICATE_REPLY, item, type);
-            return 0;
+        final Function<CommandPagination.Parameters, Text> header;
+        if (items.contains(item)) {
+            header = parameters ->
+                    Text.literal(String.format(DUPLICATE_REPLY, item, type.toPlural()));
+        } else {
+            items.add(item);
+            header = parameters ->
+                    Text.literal(String.format(ADDED_REPLY, type.toPlural(), item));
         }
-        list.add(item);
-        CommandReply.<Blacklist>get(t -> Text.literal(String.format(ADDED_REPLY, t.toPlural(), item)))
-                .withButtons(List.of(getListButton()))
-                .display(context, type);
+
+        displayPaginatedBlacklist(ctx, type, items, header);
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int remove(CommandContext<ServerCommandSource> context, Blacklist type, ItemStackArgument itemStackArgument) {
+    private static int remove(CommandContext<ServerCommandSource> ctx, Blacklist type, ItemStackArgument itemStackArgument) {
         String item = itemStackArgument.getItem().toString();
-        List<String> list = switch (type) {
+        List<String> items = switch (type) {
             case PIGLIN -> ModConfig.piglinsBlacklist;
             case ZOMBIE -> ModConfig.zombiesBlacklist;
         };
-        int index = list.indexOf(item);
+        int index = items.indexOf(item);
         if (index < 0) {
-            CommandUtil.send(context, NOT_FOUND_REPLY, item, type);
+            CommandUtil.send(ctx, NOT_FOUND_REPLY, item, type);
             return 0;
         }
-        list.remove(item);
-        CommandReply.<Blacklist>get(t -> Text.literal(String.format(REMOVED_REPLY, t.toPlural(), item)))
-                .withButtons(List.of(getListButton()))
-                .display(context, type);
+        items.remove(item);
+        final Function<CommandPagination.Parameters, Text> header = parameters ->
+                Text.literal(String.format(REMOVED_REPLY, type.toPlural(), item));
+        displayPaginatedBlacklist(ctx, type, items, header);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -190,15 +200,6 @@ public class BlacklistCommand {
     //endregion
 
     //region Utility
-
-    private static CommandReply<Blacklist> getListButton() {
-        return CommandReply.<Blacklist>get(t -> Text.literal("List"))
-                .requires(player -> !hasPermission(player, BLACKLIST_PERMISSION))
-                .withToolTip(t -> Text.literal(String.format("View %s blacklist", t)))
-                .withCommand(t -> String.format("/zcg %s", t))
-                .withColor(t -> Colors.YELLOW)
-                .withBrackets();
-    }
 
     private static CommandReply<String> getAddButton(Blacklist type) {
         return CommandReply.<String>get(item -> Text.literal("Add"))
