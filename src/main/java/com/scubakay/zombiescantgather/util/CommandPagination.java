@@ -114,7 +114,6 @@ public class CommandPagination<C, D extends List<C>> {
         CommandUtil.send(this.source, getTableBorder());
         rows.forEach(row -> CommandUtil.send(this.source, row));
         CommandUtil.send(this.source, getPagination(emptyListMessage));
-        if (parameters.elementCount == 0 || parameters.pageCount == 1) CommandUtil.send(this.source, getTableBorder());
         CommandUtil.send(this.source, CommandReply.getButtonRow(null, buttons));
     }
 
@@ -127,9 +126,10 @@ public class CommandPagination<C, D extends List<C>> {
     private Text getPagination(Text emptyMessage) {
         if (parameters.pageCount() == 0) {
             return emptyMessage.copy().styled(style -> style
-                    .withFormatting(Formatting.GREEN));
+                    .withFormatting(Formatting.GREEN))
+                    .append(getTableBorder());
         } else if (parameters.pageCount() == 1) {
-            return null;
+            return getTableBorder();
         }
         return Text.literal("------- ")
                 .withColor(Colors.LIGHT_GRAY)
