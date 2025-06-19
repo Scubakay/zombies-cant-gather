@@ -31,8 +31,8 @@ import net.minecraft.world.World;
 import java.util.*;
 import java.util.function.Function;
 
+import static com.scubakay.zombiescantgather.command.Commands.ROOT_COMMAND;
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
-import static com.scubakay.zombiescantgather.command.RootCommand.ROOT_COMMAND;
 
 @SuppressWarnings("SameReturnValue")
 public class TrackerCommand {
@@ -42,11 +42,11 @@ public class TrackerCommand {
     private static final String TRACKER_PURGE_COMMAND = "purge";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredRegistryAccess, CommandManager.RegistrationEnvironment ignoredRegistrationEnvironment) {
-        CommandNode<ServerCommandSource> tracker = RootCommand.getRoot(dispatcher).addChild(CommandManager
-                .literal(TRACKER_COMMAND)
+        CommandNode<ServerCommandSource> tracker = CommandManager.literal(TRACKER_COMMAND)
                 .requires(ctx -> ModConfig.enableTracker && hasPermission(ctx, TRACKER_PERMISSION))
                 .executes(TrackerCommand::list)
-                .build());
+                .build();
+        Commands.getRoot(dispatcher).addChild(tracker);
 
         tracker.addChild(CommandPagination
                 .getPageCommand(TrackerCommand::list)

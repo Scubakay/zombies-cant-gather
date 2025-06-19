@@ -1,8 +1,7 @@
 package com.scubakay.zombiescantgather;
 
-import com.scubakay.zombiescantgather.command.RootCommand;
-import com.scubakay.zombiescantgather.command.TrackerCommand;
 import com.scubakay.zombiescantgather.command.BlacklistCommand;
+import com.scubakay.zombiescantgather.command.TrackerCommand;
 import com.scubakay.zombiescantgather.config.ModConfig;
 import eu.midnightdust.core.MidnightLib;
 import net.fabricmc.api.ModInitializer;
@@ -22,7 +21,6 @@ public class ZombiesCantGather implements ModInitializer {
     public void onInitialize() {
         ModConfig.init(MOD_ID, ModConfig.class);
         MidnightLib.registerAutoCommand();
-        CommandRegistrationCallback.EVENT.register(RootCommand::register);
         CommandRegistrationCallback.EVENT.register(BlacklistCommand::register);
         CommandRegistrationCallback.EVENT.register(TrackerCommand::register);
     }
