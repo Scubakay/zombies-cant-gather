@@ -1,11 +1,14 @@
 package com.scubakay.zombiescantgather.state;
 
+import com.mojang.brigadier.context.CommandContext;
 import com.scubakay.zombiescantgather.ZombiesCantGather;
 import com.scubakay.zombiescantgather.command.PermissionManager;
 import com.scubakay.zombiescantgather.command.TrackerCommand;
 import com.scubakay.zombiescantgather.config.ModConfig;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
@@ -20,10 +23,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.registry.RegistryWrapper;
 *///?}
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import static com.scubakay.zombiescantgather.ZombiesCantGather.*;
 import static com.scubakay.zombiescantgather.command.PermissionManager.hasPermission;
@@ -50,6 +50,14 @@ public class EntityTracker extends PersistentState {
 
     public Map<UUID, TrackedEntity> get() {
         return this.entities;
+    }
+
+    public List<TrackedEntity> getList() {
+        return this.entities
+                .values()
+                .stream()
+                .sorted(Comparator.comparingInt(x -> -x.getCount()))
+                .toList();
     }
 
     public TrackedEntity get(UUID uuid) {
@@ -84,6 +92,26 @@ public class EntityTracker extends PersistentState {
                     .filter(player -> hasPermission(player, PermissionManager.TRACKER_LOG_PERMISSION))
                     .forEach(player -> player.getCommandSource().sendMessage(TrackerCommand.getTrackerRow(trackedEntity)));
         }
+    }
+
+    public List<TrackedEntity> purge(CommandContext<ServerCommandSource> ctx) {
+        List<UUID> toRemove = new ArrayList<>();
+        this.entities.forEach((uuid, trackedEntity) -> {
+            Entity entity = ctx.getSource().getWorld().getEntity(uuid);
+            if(entity != null) {
+                //? >= 1.21.2 {
+                entity.kill(ctx.getSource().getWorld());
+                //?} else {
+                /*entity.kill();
+                *///?}
+                toRemove.add(uuid);
+            } else {
+                LOGGER.info("Could not find entity {} at {}", trackedEntity.getName(), trackedEntity.getPos().toShortString());
+            }
+        });
+        toRemove.forEach(this.entities::remove);
+        this.markDirty();
+        return getList();
     }
 
     //? >=1.21.5 {
