@@ -2,6 +2,7 @@ package com.scubakay.zombiescantgather.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.CommandNode;
 import com.scubakay.zombiescantgather.config.ModConfig;
@@ -28,6 +29,7 @@ import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 
 import java.util.*;
+import java.util.function.Function;
 
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
 import static com.scubakay.zombiescantgather.command.RootCommand.ROOT_COMMAND;
@@ -75,61 +77,49 @@ public class TrackerCommand {
 
     //region Command Handlers
 
-    private static int list(CommandContext<ServerCommandSource> ctx) {
+    private static int list(CommandContext<ServerCommandSource> source) {
         if (!ModConfig.enableTracker) {
-            CommandUtil.send(ctx, Text.literal("Tracker is not enabled").withColor(Colors.RED));
+            CommandUtil.send(source, Text.literal("Tracker is not enabled").withColor(Colors.RED));
             return 0;
         }
 
-        List<TrackedEntity> tracker = EntityTracker.getServerState(ctx.getSource().getServer()).getList();
-        CommandPagination.builder(ctx, tracker)
-                .withHeader(parameters -> Text.literal(String.format("§7Tracked §f%s§7 entities with blacklisted items:", parameters.elementCount())))
-                .withRows(TrackerCommand::getTrackerRow, List.of(getTpButton()))
-                .withEmptyMessage(parameters -> Text.literal("No mobs with blacklisted items tracked yet"))
-                .withRefreshButton()
-                .display();
+        List<TrackedEntity> tracker = EntityTracker.getServerState(source.getSource().getServer()).getList();
+        final Function<CommandPagination.Context, Text> header = context -> Text.literal(String.format("§7Tracked §f%s§7 entities with blacklisted items:", context.elementCount()));
+        getPaginatedEntities(source, tracker, header).display();
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int purge(CommandContext<ServerCommandSource> ctx) {
-        EntityTracker tracker = EntityTracker.getServerState(ctx.getSource().getServer());
+    private static int purge(CommandContext<ServerCommandSource> source) {
+        EntityTracker tracker = EntityTracker.getServerState(source.getSource().getServer());
         int size = tracker.get().size();
         List<TrackedEntity> remaining = EntityTracker
-                .getServerState(ctx.getSource().getServer())
-                .purge(ctx);
-        CommandPagination.builder(ctx, remaining)
-                .withCommand(String.format("/%s %s", ROOT_COMMAND, TRACKER_COMMAND))
-                .withHeader(parameters -> Text.literal(String.format("§7Killed §f%s§7 entities, %s left:", size - parameters.elementCount(), parameters.elementCount())))
-                .withRows(TrackerCommand::getTrackerRow, List.of(getTpButton()))
-                .withEmptyMessage(parameters -> Text.literal("No mobs with blacklisted items tracked yet"))
-                .withRefreshButton()
-                .display();
+                .getServerState(source.getSource().getServer())
+                .purge(source);
+        final Function<CommandPagination.Context, Text> header = parameters -> Text.literal(String.format("§7Killed §f%s§7 entities, %s left:", size - parameters.elementCount(), parameters.elementCount()));
+        getPaginatedEntities(source, remaining, header).display();
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int reset(CommandContext<ServerCommandSource> ctx) {
-        EntityTracker.getServerState(ctx.getSource().getServer()).clear();
+    private static int reset(CommandContext<ServerCommandSource> source) {
+        EntityTracker.getServerState(source.getSource().getServer()).clear();
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int teleport(CommandContext<ServerCommandSource> ctx, UUID uuid) {
-        if (ctx.getSource().isExecutedByPlayer()) {
+    private static int teleport(CommandContext<ServerCommandSource> source, UUID uuid) {
+        if (source.getSource().isExecutedByPlayer()) {
             // Get entity pos and world
-            TrackedEntity entity = EntityTracker.getServerState(ctx.getSource().getServer()).get(uuid);
+            TrackedEntity entity = EntityTracker.getServerState(source.getSource().getServer()).get(uuid);
             if (entity == null) {
-                CommandUtil.send(ctx, Text.literal("Can't teleport: entity removed from tracker").withColor(Colors.RED));
+                CommandUtil.send(source, Text.literal("Can't teleport: entity removed from tracker").withColor(Colors.RED));
                 return 0;
             }
-            RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(entity.getDimension()));
-            ServerWorld world = ctx.getSource().getServer().getWorld(key);
-
-            // Get player and teleport
-            ServerPlayerEntity player = ctx.getSource().getPlayer();
-            assert player != null;
-            TeleportTarget target = new TeleportTarget(world, entity.getPos().toBottomCenterPos(), Vec3d.ZERO, player.getYaw(), player.getPitch(), TeleportTarget.NO_OP);
-            player.teleportTo(target);
+            teleportTOEntity(source, entity);
+            List<TrackedEntity> tracker = EntityTracker.getServerState(source.getSource().getServer()).getList();
+            final Function<CommandPagination.Context, Text> header = context -> Text.literal(String.format("§7Teleported to §f%s§7:", entity.getName()));
+            getPaginatedEntities(source, tracker, header).display();
         } else {
-            CommandUtil.send(ctx, Text.literal("Only players can run the teleport command"));
+            CommandUtil.send(source, Text.literal("Only players can run the teleport command"));
+            return 0;
         }
         return Command.SINGLE_SUCCESS;
     }
@@ -137,6 +127,16 @@ public class TrackerCommand {
     //endregion
 
     //region Utiliy
+
+    private static CommandPagination<TrackedEntity, List<TrackedEntity>> getPaginatedEntities(CommandContext<ServerCommandSource> source, List<TrackedEntity> remaining, Function<CommandPagination.Context, Text> header) {
+        return CommandPagination.builder(source, remaining)
+                .withCommand(getTrackerCommand())
+                .withHeader(header)
+                .withRows(TrackerCommand::getTrackerRow, List.of(getTpButton()))
+                .withEmptyMessage(parameters -> Text.literal("No mobs with blacklisted items tracked yet"))
+                .withButton(getPurgeButton())
+                .withRefreshButton();
+    }
 
     public static MutableText getTrackerRow(TrackedEntity entity) {
         return Text.literal(String.format("(%dx) ", entity.getCount()))
@@ -219,8 +219,31 @@ public class TrackerCommand {
                                 .withBold(false)));
     }
 
+    private static void teleportTOEntity(CommandContext<ServerCommandSource> source, TrackedEntity entity) {
+        RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(entity.getDimension()));
+        ServerWorld world = source.getSource().getServer().getWorld(key);
+
+        // Get player and teleport
+        ServerPlayerEntity player = source.getSource().getPlayer();
+        assert player != null;
+        TeleportTarget target = new TeleportTarget(world, entity.getPos().toBottomCenterPos(), Vec3d.ZERO, player.getYaw(), player.getPitch(), TeleportTarget.NO_OP);
+        player.teleportTo(target);
+    }
+
+    private static String getTrackerCommand() {
+        return String.format("/%s %s", ROOT_COMMAND, TRACKER_COMMAND);
+    }
+
     private static String getTpCommand(TrackedEntity entity) {
         return String.format("/%s %s %s %s", ROOT_COMMAND, TRACKER_COMMAND, TRACKER_TELEPORT_COMMAND, entity.getUuid());
+    }
+
+    private static CommandReply<List<TrackedEntity>> getPurgeButton() {
+        return CommandReply.<List<TrackedEntity>>get(context -> Text.literal("Purge"))
+                .withCommand(context -> String.format("/%s %s %s", ROOT_COMMAND, TRACKER_COMMAND, TRACKER_PURGE_COMMAND))
+                .withToolTip(context -> Text.literal(String.format("Try to kill %s entities", context.size())))
+                .withColor(context -> Colors.RED)
+                .withBrackets();
     }
 
     //endregion
