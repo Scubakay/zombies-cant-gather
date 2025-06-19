@@ -99,7 +99,11 @@ public class EntityTracker extends PersistentState {
         this.entities.forEach((uuid, trackedEntity) -> {
             Entity entity = ctx.getSource().getWorld().getEntity(uuid);
             if(entity != null) {
+                //? >= 1.21.2 {
                 entity.kill(ctx.getSource().getWorld());
+                //?} else {
+                /*entity.kill();
+                *///?}
                 toRemove.add(uuid);
             } else {
                 LOGGER.info("Could not find entity {} at {}", trackedEntity.getName(), trackedEntity.getPos().toShortString());
