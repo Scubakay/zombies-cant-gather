@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static com.scubakay.zombiescantgather.command.Commands.ROOT_COMMAND;
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
-import static com.scubakay.zombiescantgather.command.RootCommand.ROOT_COMMAND;
 
 @SuppressWarnings("SameReturnValue")
 public class BlacklistCommand {
@@ -41,8 +41,8 @@ public class BlacklistCommand {
     private static final String BLACKLIST_ROW_REPLY = "§f%s§7";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registry, RegistrationEnvironment ignoredEnv) {
-        RootCommand.getRoot(dispatcher).addChild(getBlacklistNode(registry, Blacklist.PIGLIN));
-        RootCommand.getRoot(dispatcher).addChild(getBlacklistNode(registry, Blacklist.ZOMBIE));
+        Commands.getRoot(dispatcher).addChild(getBlacklistNode(registry, Blacklist.PIGLIN));
+        Commands.getRoot(dispatcher).addChild(getBlacklistNode(registry, Blacklist.ZOMBIE));
     }
 
     //region Command Nodes

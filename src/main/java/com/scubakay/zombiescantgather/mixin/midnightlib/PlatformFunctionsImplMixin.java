@@ -1,8 +1,8 @@
 package com.scubakay.zombiescantgather.mixin.midnightlib;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.scubakay.zombiescantgather.command.Commands;
 import com.scubakay.zombiescantgather.command.PermissionManager;
-import com.scubakay.zombiescantgather.command.RootCommand;
 import eu.midnightdust.lib.util.fabric.PlatformFunctionsImpl;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandManager;
@@ -21,13 +21,12 @@ public class PlatformFunctionsImplMixin {
             remap = false
     )
     private static void zombiesCantGather$registerCorrectedConfigCommand(LiteralArgumentBuilder<ServerCommandSource> command, CallbackInfo ci) {
-        CommandRegistrationCallback.EVENT.register(((commandDispatcher, commandRegistryAccess, registrationEnvironment) -> RootCommand.getRoot(commandDispatcher)
+        CommandRegistrationCallback.EVENT.register(((dispatcher, registry, environment) -> Commands.getRoot(dispatcher)
                 .addChild(CommandManager
                         .literal("config")
                         .requires(source -> PermissionManager.hasPermission(source, PermissionManager.CONFIGURE_MOD_PERMISSION))
                         .then(command)
-                        .build()
-                )));
+                        .build())));
         ci.cancel();
     }
 }
