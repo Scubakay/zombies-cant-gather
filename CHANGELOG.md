@@ -1,6 +1,14 @@
-- #19 Alert console when entity with blacklisted item is loaded
-- #20 Add command `/zcg tracker` which lists entities that were loaded holding blacklisted items
-- #20 Add command `/zcg tracker reset` which resets the entity list
-- #20 Now has a separate `1.21.5` version
-- #26 Add alias `/zcg`
-- #33 Add pagination to blacklists
+This version introduces the tracker:
+- Tracks mobs with blacklisted items when they are loaded
+- List tracked mobs with `/zcg tracker`
+- Clear tracker with `/zcg tracker reset`
+- Kill all loaded listed mobs with `/zcg tracker purge`
+- Teleport to tracked mobs with buttons in the list
+
+Changes:
+- Client side support
+- Mod Menu support
+- Config options also available under `/zcg config`
+- Blacklists are now paginated
+- New alias `/zcg` (redirects to `/zombiescantgather`)
+- Option to log mobs with blacklisted items in console
