@@ -3,6 +3,7 @@ package com.scubakay.zombiescantgather.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.scubakay.zombiescantgather.config.ModConfig;
@@ -73,15 +74,14 @@ public class BlacklistCommand {
                 .argument(ITEM_ARGUMENT, ItemStackArgumentType.itemStack(registry))
                 .requires(ctx -> hasPermission(ctx, BLACKLIST_ADD_PERMISSION))
                 .suggests((context, builder) -> {
+                    String remaining = builder.getRemainingLowerCase();
                     Stream<Item> stream = Registries.ITEM.stream();
                     switch (entityType) {
                         case Blacklist.PIGLIN:
-                            stream.filter(x -> !ModConfig.piglinsBlacklist.contains(x.asItem().toString()))
-                                    .forEach(x -> builder.suggest(x.asItem().toString()));
+                            populateBlacklistAddSuggestions(stream, ModConfig.piglinsBlacklist, remaining, builder);
                             break;
                         case Blacklist.ZOMBIE:
-                            stream.filter(x -> !ModConfig.zombiesBlacklist.contains(x.asItem().toString()))
-                                    .forEach(x -> builder.suggest(x.asItem().toString()));
+                            populateBlacklistAddSuggestions(stream, ModConfig.zombiesBlacklist, remaining, builder);
                             break;
                     }
                     return builder.buildFuture();
@@ -223,6 +223,12 @@ public class BlacklistCommand {
                 .withCommand(id -> String.format("/zcg %s remove %s", type, id))
                 .withColor(item -> Colors.RED)
                 .withBrackets();
+    }
+
+    private static void populateBlacklistAddSuggestions(Stream<Item> stream, List<String> blacklist, String remaining, SuggestionsBuilder builder) {
+        stream.filter(x -> !blacklist.contains(x.asItem().toString()))
+                .filter(x -> x.asItem().toString().toLowerCase().contains(remaining))
+                .forEach(x -> builder.suggest(x.asItem().toString()));
     }
 
     //endregion
