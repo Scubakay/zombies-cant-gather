@@ -37,7 +37,7 @@ public class EntityTypeMixin {
     *///?}
         if (ModConfig.enableTracker && world instanceof ServerWorld && entity instanceof MobEntity mobEntity) {
             if (mobEntity.getCustomName() == null || ModConfig.trackCustomNamedMobs) {
-                ItemStack item = mobEntity/*? >= 1.21.5 {*/.getMainHandStack()/* } else { *//*.getHandItems().iterator().next()*//* } */;
+                ItemStack item = mobEntity/*? >= 1.21.5 {*/.getMainHandStack()/*? } else { *//*.getHandItems().iterator().next()*//*? } */;
                 if (entity instanceof ZombieEntity zombie && ModConfig.zombiesBlacklist.contains(item.getItem().toString())) {
                     EntityTracker.getServerState(world.getServer()).track(zombie);
                 } else if (entity instanceof PiglinEntity piglin && ModConfig.piglinsBlacklist.contains(item.getItem().toString())) {
