@@ -8,19 +8,17 @@ pluginManagement {
 }
 
 plugins {
-    id("dev.kikugie.stonecutter") version "0.7-alpha.22"
+    id("dev.kikugie.stonecutter") version "0.7-beta.3"
 }
-
-var devVersion = "1.21.5"
 
 stonecutter {
     kotlinController = true
     centralScript = "build.gradle.kts"
 
     shared {
-        vers("dev", devVersion)
+        vers("dev", "1.21.5")
         versions("1.21.5", "1.21.2", "1.21")
-        vcsVersion = devVersion
+        vcsVersion = "dev"
     }
     create(rootProject)
 }
