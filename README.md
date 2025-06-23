@@ -1,8 +1,8 @@
 # Zombies Can't Gather
 
-[![Modrinth Downloads](https://img.shields.io/modrinth/dt/683FasTt?label=modrinth&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMSAxMSIgd2lkdGg9IjE0LjY2NyIgaGVpZ2h0PSIxNC42NjciICB4bWxuczp2PSJodHRwczovL3ZlY3RhLmlvL25hbm8iPjxkZWZzPjxjbGlwUGF0aCBpZD0iQSI+PHBhdGggZD0iTTAgMGgxMXYxMUgweiIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNBKSI+PHBhdGggZD0iTTEuMzA5IDcuODU3YTQuNjQgNC42NCAwIDAgMS0uNDYxLTEuMDYzSDBDLjU5MSA5LjIwNiAyLjc5NiAxMSA1LjQyMiAxMWMxLjk4MSAwIDMuNzIyLTEuMDIgNC43MTEtMi41NTZoMGwtLjc1LS4zNDVjLS44NTQgMS4yNjEtMi4zMSAyLjA5Mi0zLjk2MSAyLjA5MmE0Ljc4IDQuNzggMCAwIDEtMy4wMDUtMS4wNTVsMS44MDktMS40NzQuOTg0Ljg0NyAxLjkwNS0xLjAwM0w4LjE3NCA1LjgybC0uMzg0LS43ODYtMS4xMTYuNjM1LS41MTYuNjk0LS42MjYuMjM2LS44NzMtLjM4N2gwbC0uMjEzLS45MS4zNTUtLjU2Ljc4Ny0uMzcuODQ1LS45NTktLjcwMi0uNTEtMS44NzQuNzEzLTEuMzYyIDEuNjUxLjY0NSAxLjA5OC0xLjgzMSAxLjQ5MnptOS42MTQtMS40NEE1LjQ0IDUuNDQgMCAwIDAgMTEgNS41QzExIDIuNDY0IDguNTAxIDAgNS40MjIgMCAyLjc5NiAwIC41OTEgMS43OTQgMCA0LjIwNmguODQ4QzEuNDE5IDIuMjQ1IDMuMjUyLjgwOSA1LjQyMi44MDljMi42MjYgMCA0Ljc1OCAyLjEwMiA0Ljc1OCA0LjY5MSAwIC4xOS0uMDEyLjM3Ni0uMDM0LjU2bC43NzcuMzU3aDB6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGZpbGw9IiM1ZGE0MjYiLz48L2c+PC9zdmc+)](https://modrinth.com/mod/zombies-cant-gather)
+[![Modrinth Downloads](https://img.shields.io/modrinth/dt/683FasTt?label=modrinth&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMSAxMSIgd2lkdGg9IjE0LjY2NyIgaGVpZ2h0PSIxNC42NjciICB4bWxuczp2PSJodHRwczovL3ZlY3RhLmlvL25hbm8iPjxkZWZzPjxjbGlwUGF0aCBpZD0iQSI+PHBhdGggZD0iTTAgMGgxMXYxMUgweiIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNBKSI+PHBhdGggZD0iTTEuMzA5IDcuODU3YTQuNjQgNC42NCAwIDAgMS0uNDYxLTEuMDYzSDBDLjU5MSA5LjIwNiAyLjc5NiAxMSA1LjQyMiAxMWMxLjk4MSAwIDMuNzIyLTEuMDIgNC43MTEtMi41NTZoMGwtLjc1LS4zNDVjLS44NTQgMS4yNjEtMi4zMSAyLjA5Mi0zLjk2MSAyLjA5MmE0Ljc4IDQuNzggMCAwIDEtMy4wMDUtMS4wNTVsMS44MDktMS40NzQuOTg0Ljg0NyAxLjkwNS0xLjAwM0w4LjE3NCA1LjgybC0uMzg0LS43ODYtMS4xMTYuNjM1LS41MTYuNjk0LS42MjYuMjM2LS44NzMtLjM4N2gwbC0uMjEzLS45MS4zNTUtLjU2Ljc4Ny0uMzcuODQ1LS45NTktLjcwMi0uNTEtMS44NzQuNzEzLTEuMzYyIDEuNjUxLjY0NSAxLjA5OC0xLjgzMSAxLjQ5MnptOS42MTQtMS40NEE1LjQ0IDUuNDQgMCAwIDAgMTEgNS41QzExIDIuNDY0IDguNTAxIDAgNS40MjIgMCAyLjc5NiAwIC41OTEgMS43OTQgMCA0LjIwNmguODQ4QzEuNDE5IDIuMjQ1IDMuMjUyLjgwOSA1LjQyMi44MDljMi42MjYgMCA0Ljc1OCAyLjEwMiA0Ljc1OCA0LjY5MSAwIC4xOS0uMDEyLjM3Ni0uMDM0LjU2bC43NzcuMzU3aDB6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGZpbGw9IiM1ZGE0MjYiLz48L2c+PC9zdmc+)
 ![Modrinth Followers](https://img.shields.io/modrinth/followers/683FasTt?color=#97ca00)
-![Modrinth Game Versions](https://img.shields.io/modrinth/game-versions/683FasTt?color=#97ca00)
+![Modrinth Game Versions](https://img.shields.io/modrinth/game-versions/683FasTt?color=#97ca00)](https://modrinth.com/mod/zombies-cant-gather)
 
 A Minecraft mod that prevents Zombies from picking up any item you choose!
 
@@ -20,7 +20,7 @@ Zombies Can't Gather provides blacklists of items that prevent Zombies or Piglin
 blacklists are available through the command `/zombiescantgather zombie` and `/zombiescantgather piglin`. From here,
 you can add or remove items:
 
-![blacklist_list.png](https://github.com/Scubakay/zombies-cant-gather/blob/master/docs/img/blacklist_list.png)
+![blacklist](https://github.com/Scubakay/zombies-cant-gather/blob/master/docs/img/blacklist_list.png?raw=true)
 
 When an item is on the blacklist, the corresponding mob can not pick it up.
 
@@ -46,14 +46,14 @@ use a command to see where all those persistent mobs are. When turned on, runnin
 `/zombiescantgather tracker` will show information about those mobs, like the item they are holding and
 the amount of times the mob has been loaded.
 
-![tracker_list.png](https://github.com/Scubakay/zombies-cant-gather/blob/master/docs/img/tracker_list.png)
+![tracker_list.png](https://github.com/Scubakay/zombies-cant-gather/blob/master/docs/img/tracker_list.png?raw=true)
 
 At the bottom of the tracker is the `Purge` button. This button will kill any entities on the list, provided that
 they are currently loaded. After running a purge, the tracker will refresh, leaving only the mobs that couldn't
 be found due to them being in unloaded chunks. Here's where the `TP` button comes in handy. This teleport works
 with mobs in unloaded chunks, so you can just teleport to the next remaining mob and run purge again when you arrive.
 
-![tracker_teleport.png](https://github.com/Scubakay/zombies-cant-gather/blob/master/docs/img/tracker_teleport.png)
+![tracker_teleport.png](https://github.com/Scubakay/zombies-cant-gather/blob/master/docs/img/tracker_teleport.png?raw=true)
 
 Running `/zombiescantgather tracker reset` will clear the list, so you can start fresh.
 
