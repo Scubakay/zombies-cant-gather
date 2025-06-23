@@ -7,5 +7,5 @@ plugins {
 stonecutter active "dev" /* [SC] DO NOT EDIT */
 
 stonecutter.tasks {
-    order(named("publishMods"))
+    order("publishMods")
 }
