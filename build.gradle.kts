@@ -3,7 +3,6 @@ plugins {
     id("fabric-loom")
     //id("dev.kikugie.j52j")
     id("me.modmuss50.mod-publish-plugin")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 class ModData {
@@ -83,7 +82,7 @@ loom {
     }
 
     runConfigs.all {
-        ideConfigGenerated(false)
+        ideConfigGenerated(true)
         vmArgs("-Dmixin.debug.export=true")
         runDir = "../../run"
     }
