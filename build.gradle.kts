@@ -57,7 +57,9 @@ class Environment {
     val range = property("mc.range").toString()
     val title = property("mc.title").toString()
     val targets = property("mc.targets").toString().split(',').map { it.trim() }
-    val publish = property("mc.publish").toString().toBoolean()
+    val publish = property("mc.publish").toString().toBoolean() && property("mod.id").toString() != "template"
+    val modrinthId = property("publish.modrinth").toString()
+    val curseforgeId = property("publish.curseforge").toString()
 }
 
 class ModDependencies(private val prefix: String) {
@@ -181,8 +183,8 @@ publishMods {
     modLoaders.add("fabric")
 
     dryRun = !env.publish
-            || providers.environmentVariable("MODRINTH_TOKEN").getOrNull() == null
-            || providers.environmentVariable("CURSEFORGE_TOKEN").getOrNull() == null
+            || (env.modrinthId != "..." && providers.environmentVariable("MODRINTH_TOKEN").getOrNull() == null)
+            || (env.curseforgeId != "..." && providers.environmentVariable("CURSEFORGE_TOKEN").getOrNull() == null)
 
     modrinth {
         projectId = property("publish.modrinth").toString()
