@@ -141,7 +141,7 @@ public class BlacklistCommand {
     }
 
     private static void displayPaginatedBlacklist(CommandContext<ServerCommandSource> ctx, Blacklist type, List<String> items, Function<CommandPagination.Context, Text> header) {
-        CommandPagination.builder(ctx, items)
+        CommandPagination.builder(ctx, items.stream().sorted().toList())
                 .withCommand(getBlacklistCommand(type))
                 .withPageSize(5)
                 .withHeader(header)
