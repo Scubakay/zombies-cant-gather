@@ -1,1 +1,1 @@
-- Improve tracker location accuracy by updating tracked entities when unloading
+- #77 Fix stupid bug where blacklists weren't being saved after adding/removing items
