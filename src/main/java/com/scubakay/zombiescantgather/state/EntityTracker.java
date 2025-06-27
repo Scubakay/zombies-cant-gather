@@ -7,6 +7,9 @@ import com.scubakay.zombiescantgather.command.TrackerCommand;
 import com.scubakay.zombiescantgather.config.ModConfig;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.PiglinEntity;
+import net.minecraft.entity.mob.ZombieEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
@@ -75,6 +78,8 @@ public class EntityTracker extends PersistentState {
     }
 
     public void track(MobEntity entity) {
+        if (!entityNeedsTracking(entity)) return;
+
         TrackedEntity trackedEntity = new TrackedEntity(entity);
 
         final TrackedEntity existingEntity = this.entities.get(trackedEntity.getUuid());
@@ -92,6 +97,19 @@ public class EntityTracker extends PersistentState {
                     .filter(player -> hasPermission(player, PermissionManager.TRACKER_LOG_PERMISSION))
                     .forEach(player -> player.getCommandSource().sendMessage(TrackerCommand.getTrackerRow(trackedEntity)));
         }
+    }
+
+    @SuppressWarnings("RedundantIfStatement")
+    private boolean entityNeedsTracking(MobEntity entity) {
+        if (entity.getCustomName() == null || ModConfig.trackCustomNamedMobs) {
+            ItemStack item = entity/*? >= 1.21.5 {*/.getMainHandStack()/*?} else {*//*.getHandItems().iterator().next()*//*?}*/;
+            if (entity instanceof ZombieEntity && ModConfig.zombiesBlacklist.contains(item.getItem().toString())) {
+                return true;
+            } else if (entity instanceof PiglinEntity && ModConfig.piglinsBlacklist.contains(item.getItem().toString())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public List<TrackedEntity> purge(CommandContext<ServerCommandSource> ctx) {

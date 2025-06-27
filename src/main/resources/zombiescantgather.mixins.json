@@ -6,6 +6,7 @@
     "EntityMixin",
     "EntityTypeMixin",
     "PiglinEntityMixin",
+    "ServerEntityManagerMixin",
     "ZombieEntityMixin",
     "midnightlib.AutoCommandMixin",
     "midnightlib.PlatformFunctionsImplMixin"
