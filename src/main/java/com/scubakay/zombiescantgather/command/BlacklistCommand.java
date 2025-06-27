@@ -10,6 +10,7 @@ import com.scubakay.zombiescantgather.config.ModConfig;
 import com.scubakay.zombiescantgather.util.CommandReply;
 import com.scubakay.zombiescantgather.util.CommandPagination;
 import com.scubakay.zombiescantgather.util.CommandUtil;
+import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.ItemStackArgument;
 import net.minecraft.command.argument.ItemStackArgumentType;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static com.scubakay.zombiescantgather.ZombiesCantGather.MOD_ID;
 import static com.scubakay.zombiescantgather.command.Commands.ROOT_COMMAND;
 import static com.scubakay.zombiescantgather.command.PermissionManager.*;
 
@@ -167,8 +169,8 @@ public class BlacklistCommand {
                     Text.literal(String.format(DUPLICATE_REPLY, item, type.toPlural()));
         } else {
             items.add(item);
-            header = context ->
-                    Text.literal(String.format(ADDED_REPLY, type.toPlural(), item));
+            MidnightConfig.write(MOD_ID);
+            header = context -> Text.literal(String.format(ADDED_REPLY, type.toPlural(), item));
         }
 
         displayPaginatedBlacklist(ctx, type, items, header);
@@ -187,6 +189,7 @@ public class BlacklistCommand {
             return 0;
         }
         items.remove(item);
+        MidnightConfig.write(MOD_ID);
         final Function<CommandPagination.Context, Text> header = context ->
                 Text.literal(String.format(REMOVED_REPLY, type.toPlural(), item));
         displayPaginatedBlacklist(ctx, type, items, header);
