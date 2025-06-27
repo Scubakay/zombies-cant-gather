@@ -57,7 +57,7 @@ class Environment {
     val range = property("mc.range").toString()
     val title = property("mc.title").toString()
     val targets = property("mc.targets").toString().split(',').map { it.trim() }
-    val publish = property("mc.publish").toString().toBoolean() && property("mod.id").toString() != "template"
+    val publish = property("mc.publish").toString().toBoolean()
 }
 
 class ModDependencies(private val prefix: String) {
