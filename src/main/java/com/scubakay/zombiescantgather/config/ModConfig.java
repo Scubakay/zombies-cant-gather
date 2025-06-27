@@ -1,8 +1,8 @@
 package com.scubakay.zombiescantgather.config;
 
+import com.google.common.collect.Lists;
 import com.scubakay.zombiescantgather.util.CommandUpdatingConfig;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("CanBeFinal")
@@ -11,9 +11,9 @@ public class ModConfig extends CommandUpdatingConfig {
     public static final String tracker = "tracker";
 
     @Entry(category = general)
-    public static List<String> zombiesBlacklist = new ArrayList<>(List.of("minecraft:glow_ink_sac"));
+    public static List<String> zombiesBlacklist = Lists.newArrayList("minecraft:glow_ink_sac");
     @Entry(category = general)
-    public static List<String> piglinsBlacklist = new ArrayList<>();
+    public static List<String> piglinsBlacklist = Lists.newArrayList();
     @Hidden
     @Entry(category = general)
     public static int permissionLevel = 4;
