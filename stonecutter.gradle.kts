@@ -62,4 +62,10 @@ tasks.register("generateIdeaRunConfigs") {
         file("${ideaDir}/Stonecutter_runActiveServer.xml").writeText(serverConfig)
     }
 }
+
+gradle.projectsEvaluated {
+    tasks["generateIdeaRunConfigs"].actions.forEach { action ->
+        action.execute(tasks["generateIdeaRunConfigs"])
+    }
+}
 //endregion

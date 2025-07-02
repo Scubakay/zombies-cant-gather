@@ -1,1 +1,2 @@
-- #77 Fix stupid bug where blacklists weren't being saved after adding/removing items
+- Blacklists are now sorted
+- Support 1.21.7
