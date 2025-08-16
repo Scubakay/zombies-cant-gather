@@ -22,21 +22,6 @@
   "license": "MIT",
   "icon": "assets/zombiescantgather/icon.png",
   "environment": "*",
-  "entrypoints": {
-    "main": [
-      "com.scubakay.zombiescantgather.ZombiesCantGather"
-    ],
-    "client": [
-      "com.scubakay.zombiescantgather.client.ZombiesCantGatherClient"
-    ]
-  },
-  "mixins": [
-    "zombiescantgather.mixins.json",
-    {
-      "config": "zombiescantgather.client.mixins.json",
-      "environment": "client"
-    }
-  ],
   "depends": {
     "fabricloader": ">=0.15",
     "minecraft": "${range}",
