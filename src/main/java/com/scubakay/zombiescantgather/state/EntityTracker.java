@@ -16,7 +16,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
 
-//? >=1.21.5 {
+//? if >=1.21.5 {
 import net.minecraft.world.PersistentStateType;
 import net.minecraft.util.Uuids;
 import com.mojang.serialization.Codec;
@@ -93,7 +93,7 @@ public class EntityTracker extends PersistentState {
             LOGGER.info("Loaded {} {} time(s) holding blacklisted item \"{}\" at {}", trackedEntity.getName(), trackedEntity.getCount(), trackedEntity.getItem(), trackedEntity.getPos().toShortString());
         }
         if (ModConfig.broadcastTrackedMobs){
-            Objects.requireNonNull(entity.getServer()).getPlayerManager().getPlayerList().stream()
+            Objects.requireNonNull(entity./*? if >= 1.21.9 {*/getEntityWorld()./*?}*/getServer()).getPlayerManager().getPlayerList().stream()
                     .filter(player -> hasPermission(player, PermissionManager.TRACKER_LOG_PERMISSION))
                     .forEach(player -> player.getCommandSource().sendMessage(TrackerCommand.getTrackerRow(trackedEntity)));
         }
@@ -102,7 +102,7 @@ public class EntityTracker extends PersistentState {
     @SuppressWarnings("RedundantIfStatement")
     private boolean entityNeedsTracking(MobEntity entity) {
         if (entity.getCustomName() == null || ModConfig.trackCustomNamedMobs) {
-            ItemStack item = entity/*? >= 1.21.5 {*/.getMainHandStack()/*?} else {*//*.getHandItems().iterator().next()*//*?}*/;
+            ItemStack item = entity/*? if >= 1.21.5 {*/.getMainHandStack()/*?} else {*//*.getHandItems().iterator().next()*//*?}*/;
             if (entity instanceof ZombieEntity && ModConfig.zombiesBlacklist.contains(item.getItem().toString())) {
                 return true;
             } else if (entity instanceof PiglinEntity && ModConfig.piglinsBlacklist.contains(item.getItem().toString())) {
@@ -117,7 +117,7 @@ public class EntityTracker extends PersistentState {
         this.entities.forEach((uuid, trackedEntity) -> {
             Entity entity = ctx.getSource().getWorld().getEntity(uuid);
             if(entity != null) {
-                //? >= 1.21.2 {
+                //? if >= 1.21.2 {
                 entity.kill(ctx.getSource().getWorld());
                 //?} else {
                 /*entity.kill();
@@ -132,7 +132,7 @@ public class EntityTracker extends PersistentState {
         return getList();
     }
 
-    //? >=1.21.5 {
+    //? if >=1.21.5 {
     public static final Codec<EntityTracker> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.unboundedMap(Uuids.CODEC, TrackedEntity.CODEC).fieldOf(TrackedEntity.TrackerKeys.HASH_MAP).forGetter(EntityTracker::get)
     ).apply(instance, EntityTracker::new));

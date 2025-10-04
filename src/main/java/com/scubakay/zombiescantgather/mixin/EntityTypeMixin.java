@@ -14,28 +14,28 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
 import java.util.function.Function;
-//? >= 1.21.6 {
+//? if >= 1.21.6 {
 import net.minecraft.storage.ReadView;
 //?} else {
 /*import net.minecraft.nbt.NbtCompound;
  *///?}
 
-//? >= 1.21.2 {
+//? if >= 1.21.2 {
 import net.minecraft.entity.SpawnReason;
 //?}
 
 @Mixin(EntityType.class)
 public class EntityTypeMixin {
     @Inject(method = "method_17843", at = @At("RETURN"))
-    //? >= 1.21.6 {
+    //? if >= 1.21.6 {
     private static void zombiesCantGather$checkForbiddenItems(ReadView readView, World world, SpawnReason spawnReason, Function<Entity, Entity> function, Entity entity, CallbackInfoReturnable<Entity> cir) {
-    //?} else >= 1.21.2 {
+    //?} else if >= 1.21.2 {
     /*private static void zombiesCantGather$checkForbiddenItems(NbtCompound nbtCompound, World world, SpawnReason spawnReason, Function<Entity, Entity> function, Entity entity, CallbackInfoReturnable<Entity> cir) {
      *///?} else {
     /*private static void zombiesCantGather$checkForbiddenItems(NbtCompound nbtCompound, World world, Function<Entity, Entity> function, Entity entity, CallbackInfoReturnable<Entity> cir) {
      *///?}
         if (ModConfig.enableTracker && world instanceof ServerWorld && entity instanceof MobEntity mob) {
-            EntityTracker tracker = EntityTracker.getServerState(Objects.requireNonNull(mob.getServer()));
+            EntityTracker tracker = EntityTracker.getServerState(Objects.requireNonNull(mob./*? if >= 1.21.9 {*/getEntityWorld()./*?}*/getServer()));
             tracker.track(mob);
         }
     }

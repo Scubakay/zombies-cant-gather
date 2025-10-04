@@ -17,7 +17,11 @@ import java.util.UUID;
 @Mixin(Entity.class)
 public abstract class EntityMixin {
     @Shadow
-    public abstract World getWorld();
+    //? if >=1.21.9 {
+    public abstract World getEntityWorld();
+    //?} else {
+    /*public abstract World getWorld();
+    *///?}
 
     @Shadow
     public abstract UUID getUuid();
@@ -27,10 +31,10 @@ public abstract class EntityMixin {
 
     @Inject(method = "setRemoved", at = @At(value = "HEAD", target = "Lnet/minecraft/entity/Entity;stopRiding()V"))
     public void zombiesCantGather$injectDiscard(Entity.RemovalReason reason, CallbackInfo ci) {
-        if (ModConfig.enableTracker && !this.getWorld().isClient()) {
+        if (ModConfig.enableTracker && !this/*? if >=1.21.9 {*/.getEntityWorld()/*?} else {*//*.getWorld()*//*?}*/.isClient()) {
             // Only remove from tracker if entity is actually killed or discarded, not just unloaded
             if ((this.getType() == EntityType.ZOMBIE || this.getType() == EntityType.PIGLIN) && (reason == Entity.RemovalReason.KILLED || reason == Entity.RemovalReason.DISCARDED)) {
-                EntityTracker tracker = EntityTracker.getServerState(Objects.requireNonNull(this.getWorld().getServer()));
+                EntityTracker tracker = EntityTracker.getServerState(Objects.requireNonNull(this/*? if >=1.21.9 {*/.getEntityWorld()/*?} else {*//*.getWorld()*//*?}*/.getServer()));
                 tracker.remove(this.getUuid());
             }
         }

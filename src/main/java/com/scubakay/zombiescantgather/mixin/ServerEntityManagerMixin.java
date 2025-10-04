@@ -17,7 +17,7 @@ public class ServerEntityManagerMixin {
     @Inject(method = "unload(Lnet/minecraft/world/entity/EntityLike;)V", at = @At("HEAD"))
     private void zombiesCantGather$injectTrackUnloadedEntities(EntityLike entity, CallbackInfo ci) {
         if (ModConfig.enableTracker && entity instanceof MobEntity mob) {
-            EntityTracker tracker = EntityTracker.getServerState(Objects.requireNonNull(mob.getServer()));
+            EntityTracker tracker = EntityTracker.getServerState(Objects.requireNonNull(mob./*? if >= 1.21.9 {*/getEntityWorld()./*?}*/getServer()));
             tracker.track(mob);
         }
     }

@@ -9,7 +9,7 @@ plugins {
     //id("dev.kikugie.j52j")
     kotlin("jvm") version "2.2.0"
     id("com.google.devtools.ksp") version "2.2.0-2.0.2"
-    id("dev.kikugie.fletching-table.fabric") version "0.1.0-alpha.13"
+    id("dev.kikugie.fletching-table.fabric") version "0.1.0-alpha.17"
     id("me.modmuss50.mod-publish-plugin")
     //id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -76,13 +76,30 @@ class Environment {
     val modrinthId = property("publish.modrinth").toString()
     val curseforgeId = property("publish.curseforge").toString()
 
-    val modrinthRuntime = property("modrinth.runtime").toString().split(",").map { it.trim() }.filter { it.isNotEmpty() }.filter { checkSpecified("modrinth.runtime.$it") }
-    val modrinthImplementation = property("modrinth.implementation").toString().split(",").map { it.trim() }.filter { it.isNotEmpty() }.filter { checkSpecified("modrinth.implementation.$it") }
-    val modrinthInclude = property("modrinth.include").toString().split(",").map { it.trim() }.filter { it.isNotEmpty() }.filter { checkSpecified("modrinth.include.$it") }
-
     val modrinthVersionedRuntime = project.properties.filter { (dep, _) -> dep.startsWith("modrinth.runtime.") }
     val modrinthVersionedImplementation = project.properties.filter { (dep, _) -> dep.startsWith("modrinth.implementation.") }
     val modrinthVersionedInclude = project.properties.filter { (dep, _) -> dep.startsWith("modrinth.include.") }
+
+    val modrinthRuntime = property("modrinth.runtime").toString()
+        .split(",")
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .filter { checkSpecified("modrinth.runtime.$it") }
+        .filter { it !in modrinthVersionedRuntime.keys.map { k -> k.removePrefix("modrinth.runtime.") } }
+
+    val modrinthImplementation = property("modrinth.implementation").toString()
+        .split(",")
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .filter { checkSpecified("modrinth.implementation.$it") }
+        .filter { it !in modrinthVersionedImplementation.keys.map { k -> k.removePrefix("modrinth.implementation.") } }
+
+    val modrinthInclude = property("modrinth.include").toString()
+        .split(",")
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .filter { checkSpecified("modrinth.include.$it") }
+        .filter { it !in modrinthVersionedInclude.keys.map { k -> k.removePrefix("modrinth.include.") } }
 }
 
 fun checkSpecified(depName: String): Boolean {

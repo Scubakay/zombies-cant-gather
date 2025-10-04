@@ -6,7 +6,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.dimension.DimensionTypes;
 
-//? >=1.21.5 {
+//? if >=1.21.5 {
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.util.Uuids;
@@ -58,7 +58,12 @@ public class TrackedEntity {
         name = entity.getName().getString();
         item = entity.getMainHandStack().getItem().asItem().toString();
         pos = entity.getBlockPos();
-        dimension = entity.getWorld().getDimensionEntry().getIdAsString();
+
+        //? if >=1.21.9 {
+        dimension = entity.getEntityWorld().getDimensionEntry().getIdAsString();
+        //?} else {
+        /*dimension = entity.getWorld().getDimensionEntry().getIdAsString();
+        *///?}
         count = 1;
     }
 
@@ -90,7 +95,7 @@ public class TrackedEntity {
         }
     }
 
-    //? >=1.21.5 {
+    //? if >=1.21.5 {
     public TrackedEntity(UUID uuid, String name, String item, BlockPos pos, String dimension, int count) {
         this.uuid = uuid;
         this.name = name;

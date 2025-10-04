@@ -8,7 +8,7 @@ pluginManagement {
 }
 
 plugins {
-    id("dev.kikugie.stonecutter") version "0.7-beta.3"
+    id("dev.kikugie.stonecutter") version "0.7.10"
 }
 
 val devVersion: String = providers.gradleProperty("settings.devVersion").orNull
@@ -24,7 +24,7 @@ stonecutter {
 
     shared {
         // Versions are declared in gradle.properties under settings.
-        vers("dev", devVersion)
+        version("dev", devVersion)
         versions(*versions.toTypedArray())
         vcsVersion = providers.gradleProperty("settings.vcsVersion").orNull
             ?: error("vcsVersion property not found in gradle.properties")
