@@ -15,8 +15,8 @@ public class CommandUpdatingConfig extends MidnightConfig {
     }
 
     @Override
-    public void writeChanges(String modid) {
-        super.writeChanges(modid);
+    public void writeChanges() {
+        super.writeChanges();
         if (server != null) {
             server.getPlayerManager().getPlayerList().forEach(player -> server.getPlayerManager().sendCommandTree(player));
         }

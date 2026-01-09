@@ -22,7 +22,7 @@ public class ZombiesCantGather implements ModInitializer {
     @Override
     public void onInitialize() {
         ModConfig.init(MOD_ID, ModConfig.class);
-        MidnightLib.registerAutoCommand();
+        //MidnightLib.registerAutoCommand();
         CommandRegistrationCallback.EVENT.register(BlacklistCommand::register);
         CommandRegistrationCallback.EVENT.register(TrackerCommand::register);
     }

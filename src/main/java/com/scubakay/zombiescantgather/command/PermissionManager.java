@@ -3,6 +3,7 @@ package com.scubakay.zombiescantgather.command;
 import com.scubakay.zombiescantgather.config.ModConfig;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.command.permission.PermissionLevel;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -26,12 +27,10 @@ public class PermissionManager {
     private static final boolean fabricPermissionsApi = FabricLoader.getInstance().isModLoaded("fabric-permissions-api-v0");
 
     public static boolean hasPermission(ServerPlayerEntity player, String permission) {
-        if (player.hasPermissionLevel(ModConfig.permissionLevel)) return true;
-        return fabricPermissionsApi && Permissions.check(player, permission);
+        return fabricPermissionsApi && Permissions.check(player, permission, PermissionLevel.fromLevel(ModConfig.permissionLevel));
     }
 
     public static boolean hasPermission(ServerCommandSource source, String permission) {
-        if (source.hasPermissionLevel(ModConfig.permissionLevel)) return true;
-        return fabricPermissionsApi && Permissions.check(source, permission);
+        return fabricPermissionsApi && Permissions.check(source, permission, PermissionLevel.fromLevel(ModConfig.permissionLevel));
     }
 }

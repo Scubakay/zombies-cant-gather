@@ -72,11 +72,11 @@ public class TrackedEntity {
     }
 
     public String getDimensionName() {
-        if (isInDimensionType(DimensionTypes.OVERWORLD_ID)) {
+        if (isInDimensionType(DimensionTypes.OVERWORLD.getValue())) {
             return "Overworld";
-        } else if (isInDimensionType(DimensionTypes.THE_NETHER_ID)) {
+        } else if (isInDimensionType(DimensionTypes.THE_NETHER.getValue())) {
             return "Nether";
-        } else if (isInDimensionType(DimensionTypes.THE_END_ID)) {
+        } else if (isInDimensionType(DimensionTypes.THE_END.getValue())) {
             return "End";
         } else {
             return dimension;
@@ -84,11 +84,11 @@ public class TrackedEntity {
     }
 
     public int getDimensionColor() {
-        if (isInDimensionType(DimensionTypes.OVERWORLD_ID)) {
+        if (isInDimensionType(DimensionTypes.OVERWORLD.getValue())) {
             return Colors.GREEN;
-        } else if (isInDimensionType(DimensionTypes.THE_NETHER_ID)) {
+        } else if (isInDimensionType(DimensionTypes.THE_NETHER.getValue())) {
             return Colors.RED;
-        } else if (isInDimensionType(DimensionTypes.THE_END_ID)) {
+        } else if (isInDimensionType(DimensionTypes.THE_END.getValue())) {
             return Colors.YELLOW;
         } else {
             return Colors.WHITE;
