@@ -4,7 +4,6 @@ import com.scubakay.zombiescantgather.config.ModConfig;
 import com.scubakay.zombiescantgather.state.EntityTracker;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LoadedEntityProcessor;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
@@ -14,9 +13,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
-//? if < 1.21.11 {
+//? if >= 1.21.11 {
+import net.minecraft.entity.LoadedEntityProcessor;
+//?} else {
 /*import java.util.function.Function;
 *///?}
+
 //? if >= 1.21.6 {
 import net.minecraft.storage.ReadView;
 //?} else {

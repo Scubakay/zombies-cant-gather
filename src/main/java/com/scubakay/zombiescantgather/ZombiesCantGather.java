@@ -4,7 +4,6 @@ import com.scubakay.zombiescantgather.command.BlacklistCommand;
 import com.scubakay.zombiescantgather.command.TrackerCommand;
 import com.scubakay.zombiescantgather.config.ModConfig;
 import dev.kikugie.fletching_table.annotation.fabric.Entrypoint;
-import eu.midnightdust.core.MidnightLib;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import org.slf4j.Logger;
@@ -22,7 +21,6 @@ public class ZombiesCantGather implements ModInitializer {
     @Override
     public void onInitialize() {
         ModConfig.init(MOD_ID, ModConfig.class);
-        //MidnightLib.registerAutoCommand();
         CommandRegistrationCallback.EVENT.register(BlacklistCommand::register);
         CommandRegistrationCallback.EVENT.register(TrackerCommand::register);
     }

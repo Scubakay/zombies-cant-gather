@@ -1,7 +1,7 @@
 import me.modmuss50.mpp.ReleaseType
 import kotlin.text.split
 import kotlin.text.trim
-//import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     `maven-publish`
@@ -11,41 +11,8 @@ plugins {
     id("com.google.devtools.ksp") version "2.2.0-2.0.2"
     id("dev.kikugie.fletching-table.fabric") version "0.1.0-alpha.17"
     id("me.modmuss50.mod-publish-plugin")
-    //id("com.gradleup.shadow") version "9.3.0"
+    id("com.gradleup.shadow") version "9.3.0"
 }
-
-//region Shadow libraries
-/**
- * Everything needed to shadow a library, example:
- * shadowAndRelocate("de.maxhenkel.configbuilder:configbuilder:2.0.2", "de.maxhenkel.configbuilder", "com.scubakay.autorelog.configbuilder")
- * When using: uncomment the import and plugins.id for com.github.johnrengelman.shadow
- */
-//val shadowLibrary = configurations.create("shadowLibrary") {
-//    isCanBeResolved = true
-//    isCanBeConsumed = false
-//}
-//
-//val shadowRelocations = mutableListOf<Pair<String, String>>()
-//
-//fun shadowAndRelocate(dependencyNotation: String, fromPackage: String, toPackage: String) {
-//    dependencies.add("shadowLibrary", dependencyNotation)
-//    shadowRelocations.add(fromPackage to toPackage)
-//}
-//
-//tasks.named<ShadowJar>("shadowJar") {
-//    configurations = listOf(shadowLibrary)
-//    archiveClassifier = "dev-shadow"
-//    shadowRelocations.forEach { (from, to) ->
-//        relocate(from, to)
-//    }
-//}
-//
-//tasks {
-//    remapJar {
-//        inputFile = shadowJar.get().archiveFile
-//    }
-//}
-//endregion
 
 //region Mod information
 class ModData {
@@ -76,36 +43,23 @@ class Environment {
     val modrinthId = property("publish.modrinth").toString()
     val curseforgeId = property("publish.curseforge").toString()
 
+    val modrinthRuntime = property("modrinth.runtime").toString().split(",").map { it.trim() }.filter { it.isNotEmpty() }.filter { checkSpecified("modrinth.runtime.$it") }
+    val modrinthImplementation = property("modrinth.implementation").toString().split(",").map { it.trim() }.filter { it.isNotEmpty() }.filter { checkSpecified("modrinth.implementation.$it") }
+    val modrinthInclude = property("modrinth.include").toString().split(",").map { it.trim() }.filter { it.isNotEmpty() }.filter { checkSpecified("modrinth.include.$it") }
+    val modrinthShadow = property("modrinth.shadow").toString().split(",").map { it.trim() }.filter { it.isNotEmpty() }.filter { checkSpecified("modrinth.shadow.$it") }
+
     val modrinthVersionedRuntime = project.properties.filter { (dep, _) -> dep.startsWith("modrinth.runtime.") }
     val modrinthVersionedImplementation = project.properties.filter { (dep, _) -> dep.startsWith("modrinth.implementation.") }
     val modrinthVersionedInclude = project.properties.filter { (dep, _) -> dep.startsWith("modrinth.include.") }
+    val modrinthVersionedShadow = project.properties.filter { (dep, _) -> dep.startsWith("modrinth.shadow.") }
 
-    val modrinthRuntime = property("modrinth.runtime").toString()
-        .split(",")
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
-        .filter { checkSpecified("modrinth.runtime.$it") }
-        .filter { it !in modrinthVersionedRuntime.keys.map { k -> k.removePrefix("modrinth.runtime.") } }
+    val shadowRelocate = property("shadow.relocate").toString().split(",").map { it.trim() }.filter { it.isNotEmpty() }
 
-    val modrinthImplementation = property("modrinth.implementation").toString()
-        .split(",")
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
-        .filter { checkSpecified("modrinth.implementation.$it") }
-        .filter { it !in modrinthVersionedImplementation.keys.map { k -> k.removePrefix("modrinth.implementation.") } }
-
-    val modrinthInclude = property("modrinth.include").toString()
-        .split(",")
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
-        .filter { checkSpecified("modrinth.include.$it") }
-        .filter { it !in modrinthVersionedInclude.keys.map { k -> k.removePrefix("modrinth.include.") } }
-}
-
-fun checkSpecified(depName: String): Boolean {
-    val property = findProperty(depName)
-    // Allow auto resolution if property is missing or set to [VERSIONED]
-    return property == null || property == "[VERSIONED]"
+    fun checkSpecified(depName: String): Boolean {
+        val property = findProperty(depName)
+        // Allow auto resolution if property is missing or set to [VERSIONED]
+        return property == null || property == "[VERSIONED]"
+    }
 }
 
 val mod = ModData()
@@ -115,6 +69,28 @@ val scVersion = stonecutter.current.version
 version = "${mod.version}+${env.title}"
 group = mod.group
 base { archivesName.set(mod.id) }
+//endregion
+
+//region Shadow libraries
+val shadowLibrary = configurations.create("shadowLibrary") {
+    isCanBeResolved = true
+    isCanBeConsumed = false
+}
+
+tasks.named<ShadowJar>("shadowJar") {
+    configurations = listOf(shadowLibrary)
+    archiveClassifier = "dev-shadow"
+//    relocate("eu.midnight", "com.scubakay.eu.midnight")
+    env.shadowRelocate.forEach { dep ->
+        relocate(dep, "${mod.group}.$dep")
+    }
+}
+
+tasks {
+    remapJar {
+        inputFile = shadowJar.get().archiveFile
+    }
+}
 //endregion
 
 loom {
@@ -173,6 +149,11 @@ dependencies {
         modImplementation(fletchingTable.modrinth(dep, stonecutter.current.version, env.loader))
         include(fletchingTable.modrinth(dep, stonecutter.current.version, env.loader))
     }
+    // For shadowed mods: add them to implementation for compilation and to the shadow configuration for shading
+    env.modrinthShadow.forEach { dep ->
+        modImplementation(fletchingTable.modrinth(dep, stonecutter.current.version, env.loader))
+        add("shadowLibrary", fletchingTable.modrinth(dep, stonecutter.current.version, env.loader))
+    }
 
     // Specific versions
     env.modrinthVersionedRuntime.forEach { dep -> modLocalRuntime("maven.modrinth:${dep.key.removePrefix("modrinth.runtime.")}:${property(dep.key).toString()}") }
@@ -180,6 +161,10 @@ dependencies {
     env.modrinthVersionedInclude.forEach { dep ->
         modImplementation("maven.modrinth:${dep.key.removePrefix("modrinth.include.")}:${property(dep.key).toString()}")
         include("maven.modrinth:${dep.key.removePrefix("modrinth.include.")}:${property(dep.key).toString()}")
+    }
+    env.modrinthVersionedShadow.forEach { dep ->
+        modImplementation("maven.modrinth:${dep.key.removePrefix("modrinth.shadow.")}:${property(dep.key).toString()}")
+        add("shadowLibrary", "maven.modrinth:${dep.key.removePrefix("modrinth.shadow.")}:${property(dep.key).toString()}")
     }
 }
 
