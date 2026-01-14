@@ -80,7 +80,6 @@ val shadowLibrary = configurations.create("shadowLibrary") {
 tasks.named<ShadowJar>("shadowJar") {
     configurations = listOf(shadowLibrary)
     archiveClassifier = "dev-shadow"
-//    relocate("eu.midnight", "com.scubakay.eu.midnight")
     env.shadowRelocate.forEach { dep ->
         relocate(dep, "${mod.group}.$dep")
     }
@@ -149,7 +148,6 @@ dependencies {
         modImplementation(fletchingTable.modrinth(dep, stonecutter.current.version, env.loader))
         include(fletchingTable.modrinth(dep, stonecutter.current.version, env.loader))
     }
-    // For shadowed mods: add them to implementation for compilation and to the shadow configuration for shading
     env.modrinthShadow.forEach { dep ->
         modImplementation(fletchingTable.modrinth(dep, stonecutter.current.version, env.loader))
         add("shadowLibrary", fletchingTable.modrinth(dep, stonecutter.current.version, env.loader))
