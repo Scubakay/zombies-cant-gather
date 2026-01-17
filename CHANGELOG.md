@@ -1,2 +1,2 @@
-- Blacklists are now sorted
-- Support 1.21.7
+- Support 1.21.11
+- Fix issue with multiple mods reparenting MidnightLib config node
